@@ -1,0 +1,10 @@
+import { build } from 'esbuild';
+import { mkdir, cp } from 'node:fs/promises';
+import './build-native.mjs';
+await mkdir('dist', { recursive: true });
+await build({ entryPoints: ['src/main/app.ts'], outfile: 'dist/main/app.cjs', bundle: true, platform: 'node', target: 'node22', external: ['electron'], format: 'cjs' });
+await build({ entryPoints: ['src/preload/ui.ts', 'src/preload/capture.ts'], outdir: 'dist/preload', outExtension: { '.js': '.cjs' }, bundle: true, platform: 'node', external: ['electron'], format: 'cjs' });
+await build({ entryPoints: ['src/renderer/ui.ts', 'src/renderer/capture.ts', 'src/renderer/worklet.ts'], outdir: 'dist/renderer', bundle: true, platform: 'browser', target: 'chrome130' });
+await cp('src/renderer/index.html', 'dist/renderer/index.html');
+await cp('src/renderer/capture.html', 'dist/renderer/capture.html');
+await cp('src/renderer/style.css', 'dist/renderer/style.css');

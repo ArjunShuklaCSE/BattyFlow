@@ -1,0 +1,7 @@
+node_modules/
+dist/
+release/
+.local/
+benchmark/results/
+benchmark/fixtures/generated/
+*.log
