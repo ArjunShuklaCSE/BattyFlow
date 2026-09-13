@@ -4,6 +4,8 @@ $repository = Split-Path -Parent $PSScriptRoot
 $programs = @(
   (Join-Path $repository 'node_modules\electron\dist\electron.exe'),
   (Join-Path $repository 'release\win-unpacked\BattyFlow.exe'),
+  (Join-Path $repository 'dist\native\TargetProbe.exe'),
+  (Join-Path $repository 'release\win-unpacked\resources\app.asar.unpacked\dist\native\TargetProbe.exe'),
   (Join-Path $repository '.local\runtime\whisper-1.8.3\Release\whisper-cli.exe'),
   (Join-Path $repository '.local\runtime\llama-b6532\llama-cli.exe')
 )

@@ -218,7 +218,8 @@ async function main(): Promise<void> {
   ui = makeWindow('ui'); overlay = makeWindow('overlay'); capture = makeWindow('capture'); installIPC();
   await Promise.all([ui.loadURL('batty://app/index.html'), overlay.loadURL('batty://app/index.html?overlay=1'), capture.loadURL('batty://app/capture.html')]);
   try {
-    const icon = nativeImage.createFromDataURL('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAHklEQVQ4T2NkoBAwUqifYdQAhuEw/GFgYBh+GDAAAKLcAgFJWngFAAAAAElFTkSuQmCC');
+    const icon = nativeImage.createFromPath(join(__dirname, '../icon.png')).resize({ width: 24, height: 24 });
+    if (icon.isEmpty()) throw new Error('TRAY_ICON_MISSING');
     tray = new Tray(icon); tray.setToolTip('BattyFlow');
     tray.setContextMenu(Menu.buildFromTemplate([{ label: 'Start / stop dictation', click: () => { void toggle('dictation'); } }, { label: 'Cancel session', click: cancel }, { type: 'separator' }, { label: 'Settings & model status', click: () => ui.show() }, { label: 'Quit', click: () => app.quit() }])); tray.on('click', () => ui.show());
   } catch { notice = 'Tray unavailable. Keep the app open to use recording and cancellation controls.'; }

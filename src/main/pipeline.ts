@@ -24,7 +24,7 @@ export async function finalPipeline(s: Session, pcm: Float32Array, asr: AsrEngin
   }
   s.move('transforming'); changed(); const transformStart = performance.now();
   try {
-    const result = await transformer.transform({ mode: s.mode, transcript: s.mode === 'edit' ? resolved.text : protectedText.text, profile: settings.profile, protectedSpans: [...protectedText.tokens.keys()], ...(s.mode === 'edit' ? { selectedText: protectedText.text, editingInstruction: resolved.text } : {}), ...(s.mode === 'translation' ? { targetLanguage: settings.targetLanguage } : {}) }, signal);
+    const result = await transformer.transform({ mode: s.mode, transcript: s.mode === 'edit' ? resolved.text : protectedText.text, profile: settings.profile, sourceLanguage: settings.language, protectedSpans: [...protectedText.tokens.keys()], ...(s.mode === 'edit' ? { selectedText: protectedText.text, editingInstruction: resolved.text } : {}), ...(s.mode === 'translation' ? { targetLanguage: settings.targetLanguage } : {}) }, signal);
     check();
     if (s.mode === 'dictation') validateCleanup(protectedText.text, result);
     if (s.mode === 'command') validateDraft(protectedText.text, result);

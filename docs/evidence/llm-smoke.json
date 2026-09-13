@@ -1,0 +1,19 @@
+[
+  {
+    "mode": "dictation",
+    "transcript": "Meet at five, actually six, and do not invite Sam.",
+    "text": "Meet at five, actually six, and do not invite Sam.",
+    "ms": 1938.5874
+  },
+  {
+    "mode": "dictation",
+    "transcript": "I like this API.",
+    "text": "I like this API.",
+    "ms": 1799.5149999999999
+  },
+  {
+    "mode": "command",
+    "error": "Error: COMMAND_DRAFT_UNREQUESTED_CODE",
+    "ms": 1559.0139000000008
+  }
+]

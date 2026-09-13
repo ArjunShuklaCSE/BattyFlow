@@ -22,6 +22,8 @@ Whisper needs a real PCM16 WAV; llama.cpp needs text prompt files. They are crea
 
 Explicit copy intentionally replaces the current clipboard with the reviewed result and leaves it there. It is not a temporary paste transaction; the user requested a persistent copy. The generic temporary clipboard transaction is tested but not enabled for external delivery because format/generation/field integrity has not been validated on the host. No stale clipboard is treated as a selection, no Enter is synthesized, and no Undo rollback is attempted. Text delivered to another application is then subject to that application's behavior.
 
+Terminal delivery is always preview/copy-only. Inspect the content before pasting: a pasted newline can execute a command even without a separate Enter keystroke.
+
 ## Windows blocking and observation
 
 Run the following in an **Administrator PowerShell**, replacing paths with the exact installed executables. Include the real unpacked portable-process path, not just its self-extracting launcher:

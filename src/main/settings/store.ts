@@ -4,6 +4,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { join, dirname, resolve, basename } from 'node:path';
 import type { Asset, Settings } from '../../shared/types';
 import { localPath, runProcess } from '../privacy/process';
+import { trustedModels } from '../../shared/trusted-models';
 export const defaults: Settings = { schemaVersion: 1, microphone: '', language: 'en', profile: 'neutral', mode: 'dictation', shortcut: 'CommandOrControl+Alt+D', commandShortcut: 'CommandOrControl+Alt+J', editShortcut: 'CommandOrControl+Alt+E', maxSeconds: 120, silenceStop: false, rawFallback: false, preview: false, context: false, threads: 4, targetLanguage: 'es', translationPairs: [] };
 export async function atomicJson(path: string, value: unknown): Promise<void> {
   await mkdir(dirname(path), { recursive: true, mode: 0o700 });
@@ -37,6 +38,8 @@ export async function sha256(path: string): Promise<string> {
 }
 export async function verifyAsset(asset: Asset, magic?: 'ggml' | 'GGUF'): Promise<void> {
   validateAsset(asset); const resolved = await realpath(asset.path);
+  const trusted = trustedModels[basename(resolved)];
+  if (trusted && (asset.sha256 !== trusted.sha256 || asset.size !== trusted.size || asset.languages.some(language => !trusted.languages.includes(language)))) throw new Error('TRUSTED_MODEL_MANIFEST_MISMATCH');
   if (!localPath(resolved) || !((await stat(resolved)).isFile()) || (await stat(resolved)).size !== asset.size || await sha256(resolved) !== asset.sha256) throw new Error('ASSET_CHECKSUM_MISMATCH');
   for (const dependency of asset.dependencies ?? []) {
     const path = join(dirname(resolved), dependency.file);
