@@ -9,7 +9,7 @@ export interface AudioSource { start(id: string, device: string): Promise<void>;
 export interface VadEngine { accept(frame: Float32Array): boolean; reset(): void }
 export interface AsrEngine { transcribe(pcm: Float32Array, language: string, signal: AbortSignal): Promise<string> }
 export interface TextTransformer { transform(data: TransformData, signal: AbortSignal): Promise<string> }
-export interface TransformData { mode: Mode; transcript: string; profile: Profile; protectedSpans: string[]; selectedText?: string; editingInstruction?: string; targetLanguage?: string }
+export interface TransformData { mode: Mode; transcript: string; profile: Profile; protectedSpans: string[]; selectedText?: string; editingInstruction?: string; sourceLanguage?: string; targetLanguage?: string }
 export interface Entry { canonical: string; spokenAliases: string[]; scope?: { profile?: Profile | 'any'; app?: string; project?: string } }
 export interface Dictionary { schemaVersion: 1; entries: Entry[] }
 export interface Asset { path: string; sha256: string; size: number; name: string; provenance: string; license: string; languages: string[]; version: string; dependencies?: { file: string; sha256: string; size: number }[] }

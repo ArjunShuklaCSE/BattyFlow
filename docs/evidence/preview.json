@@ -1,0 +1,39 @@
+{
+  "at": "2026-09-13T21:20:35.566Z",
+  "kind": "Synthetic WAV through Chromium getUserMedia and AudioWorklet into real Whisper CPU CLI",
+  "packaged": false,
+  "checks": [
+    "Microphone opens; AudioWorklet starts",
+    "Real incremental preview appears without committing external text",
+    "Bounded 16 kHz PCM frames arrive",
+    "Real local ASR returns the synthetic spoken sentence",
+    "Single in-app insertion preserves existing text",
+    "Cancellation clears result and rejects late frames",
+    "Global toggle registered",
+    "Quit releases capture and inference"
+  ],
+  "errors": [],
+  "beforeStop": {
+    "state": "recording",
+    "elapsed": 6.38,
+    "timings": {
+      "targetCaptureMs": 205,
+      "overlayShownMs": 206,
+      "captureRate": 48000,
+      "recordingFeedbackMs": 352,
+      "firstPreviewMs": 5073
+    }
+  },
+  "result": "Please review the changes before lunch.",
+  "timings": {
+    "targetCaptureMs": 205,
+    "overlayShownMs": 206,
+    "captureRate": 48000,
+    "recordingFeedbackMs": 352,
+    "firstPreviewMs": 5073,
+    "asrMs": 892.6712000000007,
+    "stopToReadyMs": 895.5415000000003
+  },
+  "notice": "Cleanup unavailable. Review alias-resolved raw text before copying.",
+  "shortcutRegistered": true
+}

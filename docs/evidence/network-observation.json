@@ -1,0 +1,24 @@
+{
+  "sampleCount": 26,
+  "at": "2026-09-13T21:12:55.7608126Z",
+  "externalEstablishedTcpSamples": 0,
+  "loopbackEstablishedTcpSamples": 18,
+  "limitation": "Sampled observation, not packet capture or proof of zero egress. Short-lived connections may be missed; UDP endpoints do not identify remote traffic. Playwright uses loopback debugging in the test harness.",
+  "udpEndpointSamples": 0,
+  "processes": {
+    "13404": "electron.exe",
+    "32344": "electron.exe",
+    "22660": "whisper-cli.exe",
+    "21840": "electron.exe",
+    "29576": "electron.exe",
+    "26944": "electron.exe",
+    "33612": "electron.exe",
+    "27288": "electron.exe",
+    "12712": "electron.exe",
+    "9520": "electron.exe",
+    "13740": "electron.exe",
+    "10720": "electron.exe",
+    "11816": "electron.exe",
+    "30172": "electron.exe"
+  }
+}

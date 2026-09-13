@@ -14,6 +14,7 @@ export class Llama implements TextTransformer {
     const serialized = JSON.stringify(data);
     // UTF-8 byte bound is conservative for an 8192-token context, reserving output and instructions.
     if (Buffer.byteLength(serialized) > 4500) throw new Error('TRANSFORMATION_INPUT_TOO_LARGE');
+    if (!this.model.languages.includes(data.sourceLanguage ?? 'en')) throw new Error('TRANSFORMATION_SOURCE_LANGUAGE_UNSUPPORTED');
     if (data.mode === 'translation' && !this.model.languages.includes(data.targetLanguage ?? '')) throw new Error('TRANSLATION_LANGUAGE_UNSUPPORTED');
     await Promise.all([verifyAsset(this.runtime), verifyAsset(this.model, 'GGUF')]);
     const help = await runProcess(this.runtime.path, ['--help'], { signal, timeoutMs: 10000 });

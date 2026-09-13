@@ -1,0 +1,87 @@
+{
+  "path": "llama-cli.exe",
+  "name": "llama.cpp CPU CLI",
+  "license": "MIT",
+  "version": "b6532",
+  "languages": [],
+  "provenance": "https://github.com/ggml-org/llama.cpp/releases/tag/b6532",
+  "size": 2794496,
+  "sha256": "35d46f249a6dc22af2703830334571b838cdd813349c9e0aa57b6793937c846d",
+  "dependencies": [
+    {
+      "file": "ggml-base.dll",
+      "size": 663040,
+      "sha256": "b9dc6b296ee5771376ee1c64585cb0e6ed839ea3c878f568960f9002fcd55513"
+    },
+    {
+      "file": "ggml-cpu-alderlake.dll",
+      "size": 898560,
+      "sha256": "5c9ad7ef521af2199ff8419b483859f51cd4eb31d1948eade1b744a34d2335a8"
+    },
+    {
+      "file": "ggml-cpu-haswell.dll",
+      "size": 901632,
+      "sha256": "604209940e2dd6f7e4e0e2b3016ae88f1ffd37323250caa5620baba57f156a5b"
+    },
+    {
+      "file": "ggml-cpu-icelake.dll",
+      "size": 1124864,
+      "sha256": "e125397bd4d1774de31f24815e26cabc2831c57f06c98eb4952a30bfbc2c8cc1"
+    },
+    {
+      "file": "ggml-cpu-sandybridge.dll",
+      "size": 786432,
+      "sha256": "e0c0d534aff72dd43222c7ff811a43aaf0fe1b37ce25dec0edbf6b5f2b45fe18"
+    },
+    {
+      "file": "ggml-cpu-sapphirerapids.dll",
+      "size": 1388544,
+      "sha256": "8bb342d4dfe482b321e6fd7d422626ea7543969d6133bddb42d3e553e2a9582f"
+    },
+    {
+      "file": "ggml-cpu-skylakex.dll",
+      "size": 1122816,
+      "sha256": "fff4706206b29de859888478b5dc6dc6f46b9b56e694afd7077372df500242fe"
+    },
+    {
+      "file": "ggml-cpu-sse42.dll",
+      "size": 621056,
+      "sha256": "af2cc12ba2fe81e42b18fd984d3f493fdc78e40bb6a9175cb1876b311bb80bd3"
+    },
+    {
+      "file": "ggml-cpu-x64.dll",
+      "size": 613888,
+      "sha256": "0b43d869cb646140585a4db10c156d14f526f6b58f6e94e3b099ad8ffc819af2"
+    },
+    {
+      "file": "ggml-rpc.dll",
+      "size": 132096,
+      "sha256": "f95509f282ef09e613e3431fa72ff2e8099618b8a3bbc7d9d6cd3587a64278eb"
+    },
+    {
+      "file": "ggml.dll",
+      "size": 93696,
+      "sha256": "95ccb3c7d16a2f611ac89fd23a8548a8fb6542013907227ba2273a45f53e19cb"
+    },
+    {
+      "file": "libcurl-x64.dll",
+      "size": 3144776,
+      "sha256": "5bd5fda8cf2bef630dd4eed5e60b65af2aed9c76c1818c36133701c09cf6d0ac"
+    },
+    {
+      "file": "libomp140.x86_64.dll",
+      "size": 634936,
+      "sha256": "9ab1cb787e52b2a36133899c01c1db1f876067d1471cd224ead85f40a8152b99"
+    },
+    {
+      "file": "llama.dll",
+      "size": 1923584,
+      "sha256": "4fa67dd5eefaa1f1ca519ba3db033de4ad34ac65af4411c51b63b34fa405ff3f"
+    },
+    {
+      "file": "mtmd.dll",
+      "size": 682496,
+      "sha256": "566c04f62ef026ad7466b7f329d0b6b7eb849227be13ec0be3982e2831499e3b"
+    }
+  ]
+}

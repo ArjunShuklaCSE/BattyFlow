@@ -29,6 +29,7 @@ node scripts/failure-smoke.mjs
 node scripts/target-smoke.mjs
 npm run package
 node scripts/capture-smoke.mjs --packaged
+node scripts/portable-smoke.mjs
 ```
 
 Dependency installation, Electron's development binary acquisition, and electron-builder's packaging-resource acquisition need internet access. Those are developer operations outside the application. A restricted shell may need permission to execute native build tools. The lockfile pins resolved dependencies. The package is unsigned; signing/notarization is not configured. macOS/Linux packaging recipes are provided but not validated.

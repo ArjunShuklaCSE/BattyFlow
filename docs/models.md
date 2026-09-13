@@ -9,7 +9,7 @@
 | Transformation CLI | llama.cpp b6532 (c4510dc9), official Windows CPU build | `.local/runtime/llama-b6532/llama-cli.exe` | MIT; CPU, 4 threads; no RPC endpoint configured |
 | Cleanup model | Qwen2.5-0.5B-Instruct Q4_K_M GGUF | `.local/models/qwen2.5-0.5b-instruct-q4_k_m.gguf` | Apache-2.0; English is the only locally declared/tested language; quality is limited |
 
-The ASR model SHA-256 is `921e4cf8686fdd993dcd081a5da5b6c365bfde1162e72b08d75ac75289920b1f`; Whisper executable SHA-256 is `0ff971e410240a0b97117432d771245698f376e06105c011959d2bfc4bb23311`. Exact acquired manifests, including adjacent DLL hashes, are in `.local/manifests`. These are acquisition records, not publisher signatures. The original release/model sources must be trusted separately. Native code has the user's process privileges; only import binaries you trust.
+The ASR model SHA-256 is `921e4cf8686fdd993dcd081a5da5b6c365bfde1162e72b08d75ac75289920b1f`; Whisper executable SHA-256 is `0ff971e410240a0b97117432d771245698f376e06105c011959d2bfc4bb23311`. Qwen model SHA-256 is `74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db`. Both model hashes/sizes matched the official repositories' LFS tree manifests and are pinned in the app's local trusted-model catalog. Unknown model files still require your own trusted manifest and capability validation. Exact acquired manifests, including adjacent DLL hashes, are in `.local/manifests`. Hashes are not publisher signatures. Native code has the user's process privileges; only import binaries you trust.
 
 ## Manual acquisition on another machine
 

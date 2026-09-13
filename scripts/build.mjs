@@ -1,6 +1,7 @@
 import { build } from 'esbuild';
 import { mkdir, cp } from 'node:fs/promises';
 import './build-native.mjs';
+import './build-icons.mjs';
 await mkdir('dist', { recursive: true });
 await build({ entryPoints: ['src/main/app.ts'], outfile: 'dist/main/app.cjs', bundle: true, platform: 'node', target: 'node22', external: ['electron'], format: 'cjs' });
 await build({ entryPoints: ['src/preload/ui.ts', 'src/preload/capture.ts'], outdir: 'dist/preload', outExtension: { '.js': '.cjs' }, bundle: true, platform: 'node', external: ['electron'], format: 'cjs' });

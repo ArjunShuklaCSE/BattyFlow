@@ -34,7 +34,7 @@
     "asarUnpack": ["dist/native/**/*"],
     "files": ["dist/**/*", "package.json", "LICENSE", "docs/**/*"],
     "directories": { "output": "release" },
-    "win": { "target": ["portable"], "signAndEditExecutable": false },
+    "win": { "target": ["portable"], "icon": "assets/icon.ico", "signExecutable": false },
     "mac": { "target": ["dmg"], "category": "public.app-category.productivity", "extendInfo": { "NSMicrophoneUsageDescription": "Record speech for transcription on this computer." } },
     "linux": { "target": ["AppImage"], "category": "Utility" }
   }

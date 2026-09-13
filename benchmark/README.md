@@ -4,6 +4,8 @@
 
 Generate with `npm run fixtures:synthetic`, then `node scripts/finalize-fixtures.mjs`. Regeneration updates hashes because voices/OS synthesis may differ. Keep hashes fixed when comparing runs. To import consented audio, copy PCM16 **16 kHz mono** WAVs under `benchmark/fixtures`, then add manifest entries with their actual SHA-256, duration, language, provenance/consent, license, references, expected identifiers, context, and tags. `readWav` rejects incompatible containers; do not rename compressed audio to WAV. Use a local audio editor to convert before import. Record the conversion tool/version. Do not claim consent or licenses without evidence.
 
+Alternatively use `npx --no-install tsx benchmark/import.ts --audio local.wav --metadata annotation.json`. The importer validates PCM format, derives duration/hash, preserves existing files, and atomically updates the manifest. Metadata requires `id`, `language`, `provenance`, `license`, `verbatim`, `cleaned`, `identifiers` (array of `{text,count}`), and `kind` (`human` or `synthetic`). Human recordings additionally require your explicit `consented: true` attestation. Optional `profile`, `tags`, and `critical` annotations follow the existing manifest. This action deliberately retains the audio for evaluation; consent and redistribution rights remain supplied attestations, not independently verified facts.
+
 `tuning` cases are separate from `held-out` tags. These are still a tiny synthetic smoke suite, not a held-out population study. No dictionary was tuned on reported held-out errors. Known failures such as “Kubernetes” becoming “Cuba Arnett” remain visible rather than being added as fabricated vocabulary aliases.
 
 ## Metrics

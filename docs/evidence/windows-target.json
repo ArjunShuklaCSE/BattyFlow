@@ -1,0 +1,16 @@
+{
+  "at": "2026-09-13T21:05:13.608Z",
+  "checks": [
+    "Native UI Automation reads only the selected range in controlled Chromium textarea",
+    "Empty selection produces no selected text",
+    "Password field is detected; selection is never exposed"
+  ],
+  "selection": {
+    "platform": "windows",
+    "identity": "1508752:12664:639249303134764439",
+    "field": "42.2622514.4.4.1.195",
+    "secure": false,
+    "terminal": false,
+    "selection": "selected phrase"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "at": "2026-09-13T20:51:15.317Z",
+  "kind": "Physical microphone; capture and cancellation only; no content recorded in evidence",
+  "packaged": false,
+  "checks": [
+    "Microphone opens; AudioWorklet starts",
+    "Bounded 16 kHz PCM frames arrive",
+    "Physical capture cancels without transcription",
+    "Global toggle registered",
+    "Quit releases capture and inference"
+  ],
+  "errors": [],
+  "beforeStop": {
+    "state": "recording",
+    "elapsed": 1.1,
+    "timings": {
+      "captureRate": 48000,
+      "recordingFeedbackMs": 250
+    }
+  },
+  "shortcutRegistered": true
+}

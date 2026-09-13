@@ -1,0 +1,37 @@
+{
+  "path": "whisper-cli.exe",
+  "name": "whisper.cpp CPU CLI",
+  "version": "1.8.3",
+  "languages": [],
+  "provenance": "https://github.com/ggml-org/whisper.cpp/releases/tag/v1.8.3",
+  "license": "MIT",
+  "size": 480768,
+  "sha256": "0ff971e410240a0b97117432d771245698f376e06105c011959d2bfc4bb23311",
+  "dependencies": [
+    {
+      "file": "ggml-base.dll",
+      "size": 536064,
+      "sha256": "61c9c57f49f380896ed54ed3f71735e10a2d986f482c2b0a55e72b47f731b193"
+    },
+    {
+      "file": "ggml-cpu.dll",
+      "size": 683008,
+      "sha256": "eb2f1d023e51c40b27463b5ab165600eb48cb60323740f400b1b62e1c8706c56"
+    },
+    {
+      "file": "ggml.dll",
+      "size": 67584,
+      "sha256": "bcfeaf6e5b59c315fc36e290715aa7a84b22461e968543c13dfcf57df7b1b81d"
+    },
+    {
+      "file": "SDL2.dll",
+      "size": 2500096,
+      "sha256": "de23db1694a3c7a4a735e7ecd3d214b2023cc2267922c6c35d30c7fc7370d677"
+    },
+    {
+      "file": "whisper.dll",
+      "size": 483840,
+      "sha256": "4037a6567fbb08fc7efda18e4d128a95df9c31ba171af20439d1a93b785d007e"
+    }
+  ]
+}

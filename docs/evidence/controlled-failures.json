@@ -1,0 +1,11 @@
+{
+  "at": "2026-09-13T21:12:49.531Z",
+  "checks": [
+    "Permission denial produces actionable error",
+    "Missing/disconnected device startup recovers to actionable error",
+    "Wrong renderer role rejected at capture IPC",
+    "Node fetch boundary rejects external network",
+    "Capture recovers after device/permission failures and can cancel",
+    "External insertion remains copy-only"
+  ]
+}

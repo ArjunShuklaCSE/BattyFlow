@@ -11,6 +11,9 @@ import { resolve, starter, protect, restore, literalIdentifiers } from '../src/m
 import { wer, identifiers, percentile, words } from './metrics';
 import type { Profile, TextTransformer } from '../src/shared/types';
 const args = process.argv.slice(2); const option = (name:string, fallback='') => {const index=args.indexOf(name);return index>=0 ? args[index+1] ?? fallback : fallback;};
+for (const name of ['--max-wer','--max-p95-ms','--max-latency-ratio','--max-wer-delta']) {
+  if (args.includes(name) && (!option(name) || !Number.isFinite(Number(option(name))) || Number(option(name)) < 0)) throw new Error(`INVALID_THRESHOLD:${name}`);
+}
 interface Fixture {id:string;audio:string;sha256:string;duration:number;language:string;provenance:string;license:string;verbatim:string;cleaned:string;identifiers:{text:string;count:number}[];critical?:string[];profile?:Profile;tags:string[]}
 const manifestPath=pathResolve(option('--manifest','benchmark/manifest.json'));
 const manifest=JSON.parse(await readFile(manifestPath,'utf8')) as {schemaVersion:number;suite:string;fixtures:Fixture[]};
