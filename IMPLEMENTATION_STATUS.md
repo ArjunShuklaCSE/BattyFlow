@@ -14,6 +14,8 @@
 
 Evidence: [verification](docs/verification.md), `docs/evidence`, [platform support](docs/platform-support.md), [privacy boundary](docs/privacy.md).
 
+Recording startup repair (2026-09-14): the normal Windows profile lacked speech assets, while earlier recording tests used preconfigured isolated profiles. Missing-model validation also returned before showing the overlay. The normal profile now references verified local speech assets. Fresh profiles show setup guidance, every recording attempt displays a non-activating overlay on the pointer's monitor before setup validation, and failed overlays can be dismissed. Fresh-profile import, physical capture/cancel, synthetic ASR, and simulated device errors have regression coverage. The hotfix is packaged separately in `release/recording-fix` because the older unpacked app was still running; use tray Quit before launching the hotfix.
+
 Measured baseline: 18 synthetic clips × 2 passes, i7-12700H/16 GB-class host, CPU/4 threads/tiny.en. Speech-only raw WER **19.66%**; ASR p50 **873 ms**, p95 **974 ms** (36 measurements, every call reloads the model). Exact identifiers after vocabulary: **8/16 occurrences**. Six raw words/tokens on silence/noise were suppressed by VAD. No human-speech or population accuracy claim.
 
 Current checks: typecheck/build pass; **25 focused tests pass**. Real capture pipeline, physical microphone cancellation, controlled permission/device failures, IPC role rejection, Node/renderer network denial, native selected-range and password tests pass. Sampled network observation saw no established external TCP connections, but is not proof of zero egress. The token is not Administrator, so the firewall-blocked gate remains unexecuted.

@@ -13,6 +13,7 @@ export async function finalPipeline(s: Session, pcm: Float32Array, asr: AsrEngin
   s.timings['asrMs'] = performance.now() - start;
   if (!raw.trim()) { s.notice = 'No transcript returned. Nothing to insert.'; s.move('ready'); changed(); return; }
   const resolved = resolve(raw, dictionary, settings.profile);
+  s.notice = 'Transcription complete. Review the result before copying.';
   const source = s.mode === 'edit' ? s.target.selection ?? '' : resolved.text;
   const protectedText = protect(source, [...resolved.spans.map(x => x.canonical), ...dictionary.entries.map(x => x.canonical), ...literalIdentifiers(source)]);
   s.text = resolved.text;

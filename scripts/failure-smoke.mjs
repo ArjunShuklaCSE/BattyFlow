@@ -12,6 +12,7 @@ try{
  if(!ui||!capture)throw Error('WINDOWS_UNAVAILABLE');await ui.waitForSelector('#record');
  await capture.evaluate(()=>{navigator.mediaDevices.getUserMedia=async()=>{throw new DOMException('test denial','NotAllowedError');};});
  await ui.click('#record');await ui.waitForFunction(()=>document.querySelector('#state')?.textContent==='error');assert.equal(await ui.textContent('#notice'),'MICROPHONE_PERMISSION_DENIED');evidence.checks.push('Permission denial produces actionable error');
+ assert.equal(await instance.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().includes('overlay=1')).isVisible()),true);evidence.checks.push('Microphone startup errors keep the overlay visible');
  await capture.evaluate(()=>{navigator.mediaDevices.getUserMedia=async()=>{throw new DOMException('test missing device','NotFoundError');};});await ui.waitForTimeout(350);await ui.click('#record');await ui.waitForFunction(()=>document.querySelector('#notice')?.textContent==='MICROPHONE_NOT_FOUND');evidence.checks.push('Missing/disconnected device startup recovers to actionable error');
  const boundary=await instance.evaluate(async({BrowserWindow,ipcMain})=>{
    const target=BrowserWindow.getAllWindows().find(w=>w.webContents.getURL()==='batty://app/index.html');

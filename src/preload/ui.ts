@@ -8,6 +8,7 @@ const api: UIAPI = {
   saveDictionary: value => ipcRenderer.invoke('ui:save-dictionary', value), importDictionary: () => ipcRenderer.invoke('ui:import-dictionary'),
   exportDictionary: () => ipcRenderer.invoke('ui:export-dictionary'), showSettings: () => ipcRenderer.invoke('ui:settings'),
   devices: () => ipcRenderer.invoke('ui:devices'),
+  hideOverlay: () => ipcRenderer.invoke('ui:hide-overlay'),
   onView: callback => { ipcRenderer.on('view', (_event, view: View) => callback(view)); },
 };
 contextBridge.exposeInMainWorld('batty', api);

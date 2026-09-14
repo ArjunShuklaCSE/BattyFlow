@@ -1,0 +1,91 @@
+{
+  "at": "2026-09-14T07:41:55.248Z",
+  "checks": [
+    "Electron launches; UI preload responds",
+    "Fresh installation explains missing speech setup before microphone capture",
+    "Startup failure shows non-activating overlay on the current monitor",
+    "Failed session overlay can be dismissed",
+    "Importing verified runtime and model clears setup error and persists readiness",
+    "UI has no Node or arbitrary IPC primitive",
+    "Renderer external fetch blocked",
+    "Dictionary IPC and settings navigation work",
+    "Electron quit completes"
+  ],
+  "errors": [],
+  "microphoneChoices": [
+    "System default"
+  ],
+  "runtime": {
+    "electron": "44.3.0",
+    "platform": "win32",
+    "packaged": false
+  },
+  "windows": [
+    {
+      "url": "batty://app/capture.html",
+      "visible": false,
+      "focusable": true,
+      "preferences": {
+        "allowRunningInsecureContent": false,
+        "contextIsolation": true,
+        "disableDialogs": false,
+        "disablePopups": false,
+        "enableBlinkFeatures": "",
+        "experimentalFeatures": false,
+        "javascript": true,
+        "nodeIntegration": false,
+        "nodeIntegrationInSubFrames": false,
+        "nodeIntegrationInWorker": false,
+        "safeDialogs": false,
+        "safeDialogsMessage": "",
+        "sandbox": true,
+        "webSecurity": true,
+        "webviewTag": false
+      }
+    },
+    {
+      "url": "batty://app/index.html?overlay=1",
+      "visible": false,
+      "focusable": false,
+      "preferences": {
+        "allowRunningInsecureContent": false,
+        "contextIsolation": true,
+        "disableDialogs": false,
+        "disablePopups": false,
+        "enableBlinkFeatures": "",
+        "experimentalFeatures": false,
+        "javascript": true,
+        "nodeIntegration": false,
+        "nodeIntegrationInSubFrames": false,
+        "nodeIntegrationInWorker": false,
+        "safeDialogs": false,
+        "safeDialogsMessage": "",
+        "sandbox": true,
+        "webSecurity": true,
+        "webviewTag": false
+      }
+    },
+    {
+      "url": "batty://app/index.html",
+      "visible": true,
+      "focusable": true,
+      "preferences": {
+        "allowRunningInsecureContent": false,
+        "contextIsolation": true,
+        "disableDialogs": false,
+        "disablePopups": false,
+        "enableBlinkFeatures": "",
+        "experimentalFeatures": false,
+        "javascript": true,
+        "nodeIntegration": false,
+        "nodeIntegrationInSubFrames": false,
+        "nodeIntegrationInWorker": false,
+        "safeDialogs": false,
+        "safeDialogsMessage": "",
+        "sandbox": true,
+        "webSecurity": true,
+        "webviewTag": false
+      }
+    }
+  ]
+}

@@ -27,13 +27,17 @@ function update(next: View): void {
   const time = `${Math.floor(next.elapsed/60)}:${String(Math.floor(next.elapsed%60)).padStart(2,'0')}`;
   const active = ['arming','recording','transcribing','transforming','inserting'].includes(next.state);
   const hasResult = ['ready','idle'].includes(next.state) && !!next.text;
+  el('setup-required').hidden = !!next.settings.whisper && !!next.settings.asrModel;
   document.body.classList.toggle('recording', next.state === 'recording');
   el('state').textContent = next.state; el('elapsed').textContent = time; el('overlay-time').textContent = time; el('overlay-state').textContent = next.state;
   el<HTMLProgressElement>('meter').value = next.level; el<HTMLProgressElement>('overlay-meter').value = next.level;
   el('result').textContent = next.text || 'Your transcript will appear here.'; el('result').classList.toggle('empty', !next.text);
   el('partial').hidden = !next.partial; el('partial').textContent = `Incremental preview · revisable: ${next.partial}`;
   el('notice').textContent = next.notice; el('overlay-notice').textContent = next.notice;
-  el('overlay-text').textContent = next.partial || next.text || (next.state === 'recording' ? 'Listening…' : next.state === 'transcribing' ? 'Transcribing locally…' : 'Ready when you are.');
+  el('overlay-text').textContent = next.partial || next.text || (next.state === 'recording' ? 'Listening…' : next.state === 'arming' ? 'Preparing microphone…' : next.state === 'error' ? 'Recording could not finish' : next.state === 'cancelled' ? 'Recording discarded' : next.state === 'transcribing' ? 'Transcribing locally…' : 'Ready when you are.');
+  el<HTMLButtonElement>('overlay-stop').disabled = next.state !== 'recording';
+  el<HTMLButtonElement>('overlay-cancel').disabled = !active && next.state !== 'ready';
+  el<HTMLButtonElement>('overlay-dismiss').disabled = active || next.state === 'ready';
   el<HTMLButtonElement>('copy').disabled = !hasResult; el<HTMLButtonElement>('overlay-copy').disabled = !hasResult; el<HTMLButtonElement>('insert-test').disabled = next.state !== 'ready' || !hasResult;
   el<HTMLButtonElement>('cancel').disabled = !active && next.state !== 'ready';
   el<HTMLButtonElement>('record').disabled = active && !['recording','arming'].includes(next.state);
@@ -52,6 +56,8 @@ for (const id of ['cancel','overlay-cancel']) el(id).addEventListener('click', (
 for (const id of ['copy','overlay-copy']) el(id).addEventListener('click', () => safe(() => window.batty.copy(view?.id ?? '')));
 el('overlay-stop').addEventListener('click', () => { if (view?.state === 'recording') safe(() => window.batty.toggle()); });
 el('overlay-settings').addEventListener('click', () => safe(() => window.batty.showSettings()));
+el('overlay-dismiss').addEventListener('click', () => safe(() => window.batty.hideOverlay()));
+el('setup-models').addEventListener('click', () => document.querySelector<HTMLButtonElement>('[data-page="models"]')?.click());
 el('insert-test').addEventListener('click', () => safe(async () => { const area = el<HTMLTextAreaElement>('test-field'); const start = area.selectionStart; const end = area.selectionEnd; const value = area.value; const text = await window.batty.insertTest(view?.id ?? ''); if (area.value === value && area.selectionStart === start && area.selectionEnd === end) { area.setRangeText(text, start, end, 'end'); area.focus(); } else throw new Error('Test field changed. Result remains available for copying.'); }));
 const titles: Record<string,string> = { studio:'Dictation studio', models:'Local models', vocabulary:'Developer vocabulary', preferences:'Preferences', privacy:'Privacy & capabilities' };
 document.querySelectorAll<HTMLButtonElement>('[data-page]').forEach(button => button.addEventListener('click', () => {

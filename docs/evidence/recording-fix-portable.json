@@ -1,0 +1,31 @@
+{
+  "at": "2026-09-14T07:48:15.798Z",
+  "checks": [
+    "Portable launcher extracts and opens actual app UI",
+    "Packaged recording overlay is visible and never takes focus",
+    "Portable artifact performs real local ASR through the microphone pipeline",
+    "In-app insertion preserves existing text",
+    "Cancellation prevents late result delivery",
+    "Packaged tray asset is nonempty and has visible pixels",
+    "Clean app quit returns from portable launcher after test debugger detaches"
+  ],
+  "method": "Portable self-extracting launcher; explicit loopback debugging ports for test only. Normal app launch has no debugging arguments.",
+  "result": "Review the changes before lunch.",
+  "timings": {
+    "targetCaptureMs": 198,
+    "overlayShownMs": 200,
+    "captureRate": 48000,
+    "recordingFeedbackMs": 553,
+    "asrMs": 921.4130999999998,
+    "stopToReadyMs": 923.7797
+  },
+  "runtime": "{\"electron\":\"44.3.0\",\"nativeHelperPresent\":true}",
+  "trayIcon": {
+    "empty": false,
+    "size": {
+      "width": 256,
+      "height": 256
+    },
+    "visiblePixels": 63692
+  }
+}

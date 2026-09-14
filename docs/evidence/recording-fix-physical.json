@@ -1,0 +1,25 @@
+{
+  "at": "2026-09-14T07:42:53.011Z",
+  "kind": "Physical microphone; capture and cancellation only; no content recorded in evidence",
+  "packaged": false,
+  "checks": [
+    "Recording overlay is visible without taking focus",
+    "Microphone opens; AudioWorklet starts",
+    "Bounded 16 kHz PCM frames arrive",
+    "Physical capture cancels without transcription",
+    "Global toggle registered",
+    "Quit releases capture and inference"
+  ],
+  "errors": [],
+  "beforeStop": {
+    "state": "recording",
+    "elapsed": 1.14,
+    "timings": {
+      "targetCaptureMs": 159,
+      "overlayShownMs": 160,
+      "captureRate": 48000,
+      "recordingFeedbackMs": 1036
+    }
+  },
+  "shortcutRegistered": true
+}
