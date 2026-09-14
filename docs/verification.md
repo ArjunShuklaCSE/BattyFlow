@@ -1,6 +1,6 @@
 # Verification and remaining gates
 
-Windows 11 build 26200, x64; Intel i7-12700H, 20 logical CPUs, 16,849,293,312 bytes physical RAM. Node 24.18.0, npm 11.16.0, Electron 44.3.0. All dates in JSON evidence are UTC; the host timezone is Asia/Calcutta. Source was bootstrapped in an empty directory. The initial source/lockfile commit is `ff38be81d4163acba9bc26687a855c2ed0c1ba99`; benchmark reports identify that exact measured source state. Later changes include integrity/language guards, additional test entrypoints and documentation.
+Windows 11 build 26200, x64; Intel i7-12700H, 20 logical CPUs, 16,849,293,312 bytes physical RAM. Node 24.18.0, npm 11.16.0, Electron 44.3.0. All dates in JSON evidence are UTC; the host timezone is Asia/Calcutta. Source was bootstrapped in an empty directory. The initial source/lockfile commit is `ecd5d5e2f633254b24c78addff0c15f54a0875ed`; benchmark reports identify that exact measured source state. Later changes include integrity/language guards, additional test entrypoints and documentation.
 
 ## Executed checks
 
