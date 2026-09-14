@@ -2,7 +2,7 @@
 
 2026-09-13T21:19:01.958Z · 12th Gen Intel(R) Core(TM) i7-12700H · win32 10.0.26200
 
-Runtime 1.8.3; model Whisper tiny.en F16. Commit: ff38be81d4163acba9bc26687a855c2ed0c1ba99.
+Runtime 1.8.3; model Whisper tiny.en F16. Commit: ecd5d5e2f633254b24c78addff0c15f54a0875ed.
 
 18 samples, raw corpus WER 0.197, ASR p50 871 ms / p95 1067 ms.
 

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "at": "2026-09-13T21:19:01.958Z",
-  "commit": "ff38be81d4163acba9bc26687a855c2ed0c1ba99",
+  "commit": "ecd5d5e2f633254b24c78addff0c15f54a0875ed",
   "suite": "synthetic-smoke-v1",
   "hardware": {
     "cpu": "12th Gen Intel(R) Core(TM) i7-12700H",
