@@ -4,9 +4,11 @@ A local Electron dictation application for Windows, with explicit fallback adapt
 
 ## Run the available Windows build
 
-Open `release/BattyFlow 0.1.0.exe` (unsigned portable launcher), or `release/win-unpacked/BattyFlow.exe`. The model and native inference runtimes are separate from the package. The build does not download anything at startup.
+Download the unsigned Windows x64 executable from [Releases](https://github.com/ArjunShuklaCSE/BattyFlow/releases/tag/v0.1.0-preview). This preview includes the recording-startup and overlay fix. Quit an older running copy from its tray menu before opening it; closing the window only hides it.
 
-1. Open **Local models**. Import `.local/manifests/whisper.json`, then `.local/manifests/asrModel.json`. These manifests reference the runtime/model acquired in this workspace. Keep the runtime's DLLs beside its executable.
+Models and native inference runtimes are separate downloads and are **not included** in the executable or Git repository. The app does not download anything at startup. Follow [local model setup](docs/models.md) to acquire the pinned files and generate their manifests. A setup callout appears until speech assets are imported; startup errors also appear in the overlay.
+
+1. After completing model setup, open **Local models**. Import the generated `.local/manifests/whisper.json`, then `.local/manifests/asrModel.json`. Keep the runtime's DLLs beside its executable.
 2. Grant microphone access in Windows Settings → Privacy & security → Microphone. BattyFlow requests audio only; camera permission is denied.
 3. Use **Start recording**, or **Ctrl+Alt+D**, speak, then press the same control to stop. The shortcut is **Cmd+Alt+D** on macOS, where validation is still outstanding.
 4. Review the transcript. **Insert result into test field** exercises the app's own editor. **Copy text** replaces clipboard contents on your explicit request; choose the intended external field and paste manually.
@@ -34,9 +36,13 @@ node scripts/portable-smoke.mjs
 
 Dependency installation, Electron's development binary acquisition, and electron-builder's packaging-resource acquisition need internet access. Those are developer operations outside the application. A restricted shell may need permission to execute native build tools. The lockfile pins resolved dependencies. The package is unsigned; signing/notarization is not configured. macOS/Linux packaging recipes are provided but not validated.
 
+`npm run package` writes `release/BattyFlow 0.1.0.exe` and `release/win-unpacked/BattyFlow.exe`. The locally validated hotfix was built separately under `release/recording-fix`. Recording tests require the manually acquired models and generated synthetic fixtures; run `npm run fixtures:synthetic` before the capture smoke tests.
+
 ## Offline model setup
 
 See [model setup](docs/models.md) for pinned versions, checksums, capabilities, licenses, and manual acquisition. Import **JSON asset manifests**, not a model renamed to JSON. Models may remain in an explicitly selected local directory; settings store only their paths and metadata. UNC/network paths are rejected. You must avoid mapped network drives too: drive-type verification is not implemented. A checksum made from an arbitrary file establishes integrity, not publisher authenticity.
+
+For an explicit developer setup using manifests already acquired in this workspace, run `npx tsx scripts/configure-local.ts .local/manifests "$env:APPDATA\BattyFlow"`, then restart the app. This verifies the runtime, adjacent DLLs, model hash and format before saving missing speech settings. Existing preferences and model choices are preserved. The running app never executes this setup command automatically.
 
 No account, API key, hosted inference, updater, telemetry, repository indexing, or command execution is present. Runtime guards are defense in depth; see [privacy](docs/privacy.md) for the native-process boundary and OS firewall procedure. Text copied or inserted into another app follows that app's data handling.
 

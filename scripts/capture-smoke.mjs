@@ -6,6 +6,8 @@ if(process.argv.includes('--portable')){await import('./portable-smoke.mjs');pro
 const physical=process.argv.includes('--physical');const portable=process.argv.includes('--portable');const packaged=portable||process.argv.includes('--packaged');const preview=process.argv.includes('--preview');
 const dataDir=resolve(`.local/${portable?'portable-':packaged?'packaged-':''}${physical?'physical':preview?'preview':'capture'}-smoke`);await mkdir(dataDir,{recursive:true});
 const settings={schemaVersion:1,microphone:'',language:'en',profile:'neutral',mode:'dictation',shortcut:'CommandOrControl+Alt+D',commandShortcut:'CommandOrControl+Alt+J',editShortcut:'CommandOrControl+Alt+E',maxSeconds:30,silenceStop:false,rawFallback:false,preview:false,context:false,threads:4,targetLanguage:'es',translationPairs:[],whisper:JSON.parse(await readFile('.local/manifests/whisper.json','utf8')),asrModel:JSON.parse(await readFile('.local/manifests/asrModel.json','utf8'))};
+// Avoid colliding with the user's normally running app during isolated tests.
+settings.shortcut='CommandOrControl+Alt+Shift+D';settings.commandShortcut='CommandOrControl+Alt+Shift+J';settings.editShortcut='CommandOrControl+Alt+Shift+E';
 await writeFile(resolve(dataDir,'settings.json'),JSON.stringify(settings));
 if(preview){settings.preview=true;await writeFile(resolve(dataDir,'settings.json'),JSON.stringify(settings));}
 const args=packaged?[]:['.'];if(!physical)args.push('--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream',`--use-file-for-fake-audio-capture=${resolve('benchmark/fixtures/generated/plain.wav')}%noloop`);
@@ -16,6 +18,8 @@ try{
   await page.waitForSelector('#record');page.on('pageerror',e=>evidence.errors.push(e.message));
   await page.click('#record');await page.waitForFunction(()=>['recording','error'].includes(document.querySelector('#state')?.textContent));
   const state=await page.textContent('#state');if(state==='error')throw Error(await page.textContent('#notice'));
+  const overlayState=await instance.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().includes('overlay=1'));return{visible:w.isVisible(),focusable:w.isFocusable(),focused:w.isFocused()};});
+  assert.deepEqual(overlayState,{visible:true,focusable:false,focused:false});evidence.checks.push('Recording overlay is visible without taking focus');
   evidence.checks.push('Microphone opens; AudioWorklet starts');await page.waitForTimeout(physical?1200:preview?6500:4500);
   if(preview){const partial=await page.evaluate(()=>window.batty.snapshot());assert.match(partial.partial,/review/i);evidence.checks.push('Real incremental preview appears without committing external text');}
   evidence.beforeStop=await page.evaluate(async()=>{const v=await window.batty.snapshot();return{state:v.state,elapsed:v.elapsed,timings:v.timings};});assert.ok(evidence.beforeStop.elapsed>0);evidence.checks.push('Bounded 16 kHz PCM frames arrive');
@@ -28,7 +32,7 @@ try{
     await page.waitForTimeout(400);await page.click('#record');await page.waitForFunction(()=>document.querySelector('#state')?.textContent==='recording');await page.click('#cancel');await page.waitForFunction(()=>document.querySelector('#state')?.textContent==='cancelled');
     await page.waitForTimeout(500);assert.equal((await page.evaluate(()=>window.batty.snapshot())).text,'');evidence.checks.push('Cancellation clears result and rejects late frames');
   }
-  evidence.shortcutRegistered=await instance.evaluate(({globalShortcut})=>globalShortcut.isRegistered('CommandOrControl+Alt+D'));
+  evidence.shortcutRegistered=await instance.evaluate(({globalShortcut},key)=>globalShortcut.isRegistered(key),settings.shortcut);
   assert.equal(evidence.shortcutRegistered,true);evidence.checks.push('Global toggle registered');
   await page.screenshot({path:resolve(`.local/${packaged?'packaged-':''}capture-smoke.png`),fullPage:true});
   assert.equal(evidence.errors.length,0);

@@ -30,7 +30,7 @@ let ui: BrowserWindow; let overlay: BrowserWindow; let capture: BrowserWindow; l
 let quitting = false; let s: Session | null = null; let opening = false; let stopped = false; let launchGeneration = 0;
 let pcm = new Float32Array(0); let used = 0; let sequence = 0; let level = 0; let startedAt = 0; let lastFrame = 0; let lastPaint = 0; let lastToggle = 0;
 let processing: Promise<void> | null = null; let whisper: Whisper | null = null;
-let notice = 'Import a local Whisper runtime and model to begin. Your audio stays on this computer.';
+let notice = 'Add a local speech runtime and model in Local models to begin.';
 const nativeHelper = app.isPackaged ? join(process.resourcesPath, 'app.asar.unpacked/dist/native/TargetProbe.exe') : join(__dirname, '../native/TargetProbe.exe');
 const platform = process.platform === 'win32' ? new WindowsPlatform(nativeHelper) : platformAdapter(); const vad = new EnergyVad(); const preview = new PreviewScheduler();
 let tempRoot: string; let lastPreview = 0; let devicePending: ((items: {deviceId: string;label: string}[]) => void) | null = null;
@@ -39,11 +39,18 @@ function emit(): void {
   const data = view(); for (const window of [ui, overlay]) if (window && !window.isDestroyed()) window.webContents.send('view', data);
   if (tray) tray.setToolTip(`BattyFlow · ${data.state}`);
 }
+function showOverlay(): void {
+  // Reposition on every activation, including after monitor changes. Never take focus.
+  const work = screen.getDisplayNearestPoint(screen.getCursorScreenPoint()).workArea;
+  const { width, height } = overlay.getBounds();
+  overlay.setPosition(Math.round(work.x + Math.max(0, (work.width - width) / 2)), work.y + Math.max(0, work.height - height - 24));
+  overlay.showInactive();
+}
 function fail(code: string): void {
   if (s && !['idle','cancelled','error'].includes(s.state)) {
     s.controller.abort(); s.text = ''; s.partial = ''; s.state = 'error'; s.notice = code;
     capture?.webContents.send('capture-command', { action: 'cancel', id: s.id });
-  } else notice = code;
+  } else { notice = code; if (s) s.notice = code; }
   pcm = new Float32Array(0); used = 0; level = 0; void preview.stop(); emit();
 }
 function cancel(): void {
@@ -58,8 +65,6 @@ async function toggle(mode: Mode = settings.mode): Promise<void> {
   if (s?.state === 'arming') { cancel(); return; }
   if (opening || processing || s?.state === 'inserting') return;
   if (!['dictation','edit','command','translation'].includes(mode)) throw new Error('INVALID_MODE');
-  if (mode !== 'dictation' && (!settings.llama || !settings.llmModel)) { notice = 'This mode requires an imported, compatible local transformation model.'; if (s) s.notice = notice; emit(); ui.show(); return; }
-  if (mode === 'translation' && !settings.translationPairs.includes(`${settings.language}:${settings.targetLanguage}`)) { notice = 'This translation pair has not been configured and verified.'; if (s) s.notice = notice; emit(); return; }
   opening = true;
   const generation = ++launchGeneration;
   const activationAt = Date.now();
@@ -67,13 +72,21 @@ async function toggle(mode: Mode = settings.mode): Promise<void> {
     if (s?.alive()) s.cancel();
     const target = await platform.capture(mode === 'edit');
     if (generation !== launchGeneration || quitting) return;
-    if (mode === 'edit' && !await platform.read(target)) { notice = 'No valid nonempty selection is available. Select text in a supported app and use the edit shortcut. Nothing was changed.'; if (s) s.notice = notice; emit(); return; }
     s = new Session(mode, target); stopped = false; sequence = 0; used = 0; level = 0; lastPreview = 0; vad.reset();
+    startedAt = activationAt;
     s.timings['targetCaptureMs'] = Date.now() - activationAt;
-    if (!settings.whisper || !settings.asrModel) { fail('Import a Whisper 1.8.3 runtime manifest and a compatible local model manifest in Settings.'); ui.show(); return; }
+    s.notice = 'Preparing microphone…';
+    showOverlay(); s.timings['overlayShownMs'] = Date.now() - activationAt; emit();
+    if (!settings.whisper || !settings.asrModel) { fail('Speech setup is incomplete. Open Local models and import the Whisper 1.8.3 runtime and a speech model.'); return; }
+    if (mode !== 'dictation' && (!settings.llama || !settings.llmModel)) { fail('This mode needs a local transformation model. Add it in Local models, or choose Dictation.'); return; }
+    if (mode === 'translation' && !settings.translationPairs.includes(`${settings.language}:${settings.targetLanguage}`)) { fail('This translation pair has not been configured and verified.'); return; }
+    if (mode === 'edit') {
+      const selection = await platform.read(target);
+      if (generation !== launchGeneration || quitting) return;
+      if (!selection) { fail('No valid selection is available. Select text in a supported app and try again.'); return; }
+    }
     whisper = new Whisper(settings.whisper, settings.asrModel, tempRoot, settings.threads);
     pcm = new Float32Array(settings.maxSeconds * RATE); startedAt = activationAt; lastFrame = Date.now();
-    overlay.showInactive(); s.timings['overlayShownMs'] = Date.now() - activationAt; emit();
     capture.webContents.send('capture-command', { action: 'start', id: s.id, device: settings.microphone, maxSeconds: settings.maxSeconds });
   } finally { opening = false; }
 }
@@ -99,6 +112,7 @@ function installIPC(): void {
   handler('ui:snapshot', 'ui', () => view());
   handler('ui:toggle', 'ui', (_e, mode: Mode | undefined) => toggle(mode));
   handler('ui:cancel', 'ui', () => cancel());
+  handler('ui:hide-overlay', 'ui', () => { if (opening || processing || s?.alive()) throw new Error('CANCEL_SESSION_BEFORE_DISMISSING'); overlay.hide(); });
   handler('ui:settings', 'ui', () => { ui.show(); });
   handler('ui:copy', 'ui', (_e, id: unknown) => {
     if (typeof id !== 'string' || id !== s?.id || s.controller.signal.aborted || !['ready','idle'].includes(s.state) || !s.text) throw new Error('RESULT_UNAVAILABLE');
@@ -129,7 +143,9 @@ function installIPC(): void {
     if (kind === 'llama' && asset.version !== 'b6532') throw new Error('LLAMA_VERSION_REQUIRES_B6532');
     if ((kind === 'asrModel' || kind === 'llmModel') && !asset.languages.length) throw new Error('MODEL_LANGUAGES_REQUIRED');
     settings = { ...settings, [kind as string]: asset }; await atomicJson(join(app.getPath('userData'), 'settings.json'), settings);
-    notice = 'Asset checksum verified. Runtime compatibility is checked before inference.'; emit();
+    notice = settings.whisper && settings.asrModel ? 'Ready to record locally. Press Start recording or your dictation shortcut.' : 'Asset verified. Add the remaining speech runtime or model to start recording.';
+    if (s && !s.alive()) s.notice = notice;
+    emit();
   });
   handler('ui:dictionary', 'settings', () => dictionary);
   handler('ui:save-dictionary', 'settings', async (_e, input: unknown) => {
@@ -154,7 +170,7 @@ function installIPC(): void {
   handler('capture:started', 'capture', (_e, id: unknown, rate: unknown) => {
     if (!s || id !== s.id || !s.alive() || s.state !== 'arming') { if (typeof id === 'string') capture.webContents.send('capture-command', { action: 'cancel', id }); return; }
     if (typeof rate !== 'number' || rate < 8000 || rate > 192000) { fail('UNSUPPORTED_SAMPLE_RATE'); return; }
-    s.timings['captureRate'] = rate; s.timings['recordingFeedbackMs'] = Date.now() - startedAt; s.move('recording'); startedAt = Date.now(); lastFrame = Date.now(); emit();
+    s.timings['captureRate'] = rate; s.timings['recordingFeedbackMs'] = Date.now() - startedAt; s.move('recording'); s.notice = 'Recording locally. Stop to transcribe, or Cancel to discard.'; startedAt = Date.now(); lastFrame = Date.now(); emit();
   });
   handler('capture:frame', 'capture', (_e, id: unknown, index: unknown, frame: unknown) => {
     if (!s || id !== s.id || !s.alive() || !['arming','recording'].includes(s.state)) return false;
@@ -172,7 +188,7 @@ function installIPC(): void {
   });
   handler('capture:stopped', 'capture', (_e, id: unknown) => {
     if (!s || id !== s.id || !s.alive() || s.state !== 'recording' || processing) return;
-    const active = s; active.move('transcribing'); const stop = performance.now(); active.partial = ''; level = 0; emit();
+    const active = s; active.move('transcribing'); const stop = performance.now(); active.partial = ''; active.notice = 'Transcribing locally…'; level = 0; emit();
     const audio = pcm.slice(0, used); pcm = new Float32Array(0);
     processing = (async () => {
       await preview.stop(); if (!active.alive() || !whisper) return;
@@ -193,7 +209,6 @@ function makeWindow(kind: 'ui' | 'overlay' | 'capture'): BrowserWindow {
   window.webContents.on('render-process-gone', () => { fail('RENDERER_EXITED_RESTART_APP'); if (kind === 'capture') cancel(); });
   window.setMenuBarVisibility(false);
   if (kind === 'ui') window.on('close', event => { if (!quitting && tray) { event.preventDefault(); window.hide(); } else app.quit(); });
-  if (isOverlay) { const work = screen.getPrimaryDisplay().workArea; window.setPosition(Math.round(work.x + (work.width-520)/2), work.y + work.height-340); }
   return window;
 }
 async function main(): Promise<void> {
@@ -206,6 +221,7 @@ async function main(): Promise<void> {
       if (item === 'settings') settings = validateSettings(data); else dictionary = validateDictionary(data);
     } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') notice = 'A settings or dictionary file could not be loaded. Defaults are active; original file preserved.'; }
   }
+  if (settings.whisper && settings.asrModel && notice.startsWith('Add a local')) notice = 'Ready to record locally. Press Start recording or your dictation shortcut.';
   const files = new Set(['index.html','capture.html','ui.js','capture.js','worklet.js','style.css']);
   protocol.handle('batty', request => {
     const url = new URL(request.url); const name = url.pathname.slice(1);

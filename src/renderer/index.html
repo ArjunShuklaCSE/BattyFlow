@@ -9,6 +9,7 @@
   <main>
     <header><div><p class="eyebrow">YOUR WORDS, ON YOUR COMPUTER</p><h1 id="page-title">Dictation studio</h1></div><span class="badge">LOCAL ONLY</span></header>
     <section id="studio" class="page">
+      <div id="setup-required" class="callout" hidden><h2>Set up speech recognition first</h2><p>Add a local Whisper runtime and speech model before recording. Your audio stays on this computer.</p><button id="setup-models">Open Local models</button></div>
       <div class="hero"><div class="hero-heading"><div><span class="eyebrow">CAPTURE</span><h2>Speak your next thought.</h2><p>Keep the identifiers. Keep the intent.</p></div><span id="state" class="state">idle</span></div>
         <div class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
         <div class="capture-footer"><div><span id="elapsed">0:00</span><span class="muted" id="limit-label"> / 120s safety limit</span><progress id="meter" max="0.2" value="0" aria-label="Microphone level"></progress></div><div class="actions"><button id="cancel" class="quiet">Cancel</button><button id="record" class="primary">Start recording <kbd id="shortcut">Ctrl Alt D</kbd></button></div></div>
@@ -28,5 +29,5 @@
     <footer id="notice" role="status"></footer><div id="error" role="alert" hidden></div>
   </main>
 </div>
-<section id="overlay-shell" hidden><div class="overlay-top"><strong>battyflow</strong><span id="overlay-state">idle</span><span id="overlay-time">0:00</span></div><progress id="overlay-meter" max="0.2" value="0" aria-label="Microphone level"></progress><p id="overlay-text">Ready when you are.</p><p id="overlay-notice" class="muted"></p><div class="actions"><button id="overlay-stop">Stop</button><button id="overlay-cancel">Cancel</button><button id="overlay-copy" disabled>Copy</button><button id="overlay-settings">Open app</button></div></section>
+<section id="overlay-shell" hidden><div class="overlay-top"><strong>battyflow</strong><span id="overlay-state">idle</span><span id="overlay-time">0:00</span></div><progress id="overlay-meter" max="0.2" value="0" aria-label="Microphone level"></progress><p id="overlay-text">Ready when you are.</p><p id="overlay-notice" class="muted" role="status"></p><div class="actions"><button id="overlay-stop">Stop</button><button id="overlay-cancel">Cancel</button><button id="overlay-copy" disabled>Copy</button><button id="overlay-settings">Open app</button><button id="overlay-dismiss">Dismiss</button></div></section>
 <script src="ui.js"></script></body></html>

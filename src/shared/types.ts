@@ -32,7 +32,7 @@ export interface UIAPI {
   save(settings: Settings): Promise<void>; importAsset(kind: 'whisper' | 'asrModel' | 'llama' | 'llmModel'): Promise<void>;
   dictionary(): Promise<Dictionary>; saveDictionary(value: Dictionary): Promise<void>;
   importDictionary(): Promise<Dictionary | null>; exportDictionary(): Promise<void>;
-  showSettings(): Promise<void>; devices(): Promise<{ deviceId: string; label: string }[]>;
+  showSettings(): Promise<void>; hideOverlay(): Promise<void>; devices(): Promise<{ deviceId: string; label: string }[]>;
   onView(callback: (view: View) => void): void;
 }
 export interface CaptureAPI {
