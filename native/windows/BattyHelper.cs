@@ -61,6 +61,7 @@ static class BattyHelper {
                 Send(new Dictionary<string, object> { { "id", id }, { "ok", false }, { "error", error.Message } });
             }
         }
+        FlushRestore(-1); // BattyFlow is quitting; don't leave dictated text on the clipboard
         return 0;
     }
 
@@ -100,6 +101,7 @@ static class BattyHelper {
         if (Target.FocusedIsPassword()) return "secure";
         if (!WaitForModifiersReleased(1500)) return "keys-held";
 
+        FlushRestore(-1); // finish the previous paste's restore before taking a new snapshot
         Clip.Snapshot saved = null;
         uint ours = 0;
         clipboardThread.Invoke(new Action(() => {
@@ -111,14 +113,40 @@ static class BattyHelper {
         if (terminal) Keys.Chord(Native.VK_SHIFT, Native.VK_INSERT, true);
         else Keys.Chord(Native.VK_CONTROL, 0x56 /* V */, false);
 
+        // Give the target app time to read the clipboard, then put the user's content back. The reply doesn't
+        // wait for that, so the overlay can say "Pasted" right away.
         if (restore && saved != null) {
-            Thread.Sleep(Math.Max(100, Math.Min(5000, delay)));
-            clipboardThread.Invoke(new Action(() => {
-                // A newer copy by the user (or the target app) wins over our restore.
-                if (Native.GetClipboardSequenceNumber() == ours) Clip.Restore(saved);
-            }));
+            lock (RestoreSync) {
+                int generation = ++restoreGeneration;
+                pendingSnapshot = saved;
+                pendingSequence = ours;
+                restoreTimer = new System.Threading.Timer(_ => FlushRestore(generation), null, Math.Max(100, Math.Min(5000, delay)), Timeout.Infinite);
+            }
         }
         return "pasted";
+    }
+
+    static readonly object RestoreSync = new object();
+    static System.Threading.Timer restoreTimer;
+    static Clip.Snapshot pendingSnapshot;
+    static uint pendingSequence;
+    static int restoreGeneration;
+
+    // generation -1 forces the pending restore (new paste or exit); a timer only restores its own paste.
+    internal static void FlushRestore(int generation) {
+        Clip.Snapshot snapshot;
+        uint sequence;
+        lock (RestoreSync) {
+            if (pendingSnapshot == null || (generation != -1 && generation != restoreGeneration)) return;
+            snapshot = pendingSnapshot;
+            sequence = pendingSequence;
+            pendingSnapshot = null;
+            if (restoreTimer != null) { restoreTimer.Dispose(); restoreTimer = null; }
+        }
+        clipboardThread.Invoke(new Action(() => {
+            // A newer copy by the user (or the target app) wins over our restore.
+            if (Native.GetClipboardSequenceNumber() == sequence) Clip.Restore(snapshot);
+        }));
     }
 
     static bool WaitForModifiersReleased(int timeoutMs) {

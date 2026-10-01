@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "suite": "synthetic-smoke-v1",
+  "suite": "synthetic-smoke-v2",
   "normalization": "NFKC, lowercase, punctuation to spaces, whitespace words; identifiers scored independently with exact case and boundaries",
   "provenance": "Original MIT-licensed test sentences; audio generated locally with installed Windows System.Speech voices. No human recordings. Generated voice output redistribution terms unverified: local evaluation only.",
   "fixtures": [
@@ -335,6 +335,218 @@
       "provenance": "Synthetic: Windows System.Speech; none; deterministic generated PCM; original test text. No human speaker.",
       "license": "Text MIT; voice output local evaluation only; redistribution unverified",
       "duration": 2
+    },
+    {
+      "id": "github",
+      "spoken": "Open a pull request on GitHub and tag the reviewers.",
+      "verbatim": "Open a pull request on GitHub and tag the reviewers.",
+      "cleaned": "Open a pull request on GitHub and tag the reviewers.",
+      "identifiers": [
+        {
+          "text": "GitHub",
+          "count": 1
+        }
+      ],
+      "tags": ["developer", "held-out"],
+      "context": {},
+      "vocabulary": "starter-v1",
+      "audio": "fixtures/generated/github.wav",
+      "sha256": "79ca370e79e1d92cf5634c33f31aa2cc96632ea90d9aed58a6054366ae1a78d7",
+      "language": "en",
+      "provenance": "Synthetic: Windows System.Speech; Microsoft Hazel Desktop; original test text. No human speaker.",
+      "license": "Text MIT; voice output local evaluation only; redistribution unverified",
+      "duration": 4.35
+    },
+    {
+      "id": "kubectl",
+      "spoken": "Run cube control get pods in the staging namespace.",
+      "verbatim": "Run cube control get pods in the staging namespace.",
+      "cleaned": "Run kubectl get pods in the staging namespace.",
+      "identifiers": [
+        {
+          "text": "kubectl",
+          "count": 1
+        }
+      ],
+      "tags": ["developer", "held-out"],
+      "context": {},
+      "vocabulary": "starter-v1",
+      "audio": "fixtures/generated/kubectl.wav",
+      "sha256": "89d385743c556b6a2a84e0a5202fe6809c1ad7f0bd90ff0c3bdc56c9b3efa880",
+      "language": "en",
+      "provenance": "Synthetic: Windows System.Speech; Microsoft Zira Desktop; original test text. No human speaker.",
+      "license": "Text MIT; voice output local evaluation only; redistribution unverified",
+      "duration": 3.865
+    },
+    {
+      "id": "postgres",
+      "spoken": "Migrate the users table to postgres Q L before Friday.",
+      "verbatim": "Migrate the users table to Postgres Q L before Friday.",
+      "cleaned": "Migrate the users table to PostgreSQL before Friday.",
+      "identifiers": [
+        {
+          "text": "PostgreSQL",
+          "count": 1
+        }
+      ],
+      "tags": ["developer", "held-out"],
+      "context": {},
+      "vocabulary": "starter-v1",
+      "audio": "fixtures/generated/postgres.wav",
+      "sha256": "c064bd2e56fc5c5a2374ed83bd3471d19d3084669d4a0bb5bccbb6a9967a97a6",
+      "language": "en",
+      "provenance": "Synthetic: Windows System.Speech; Microsoft Hazel Desktop; original test text. No human speaker.",
+      "license": "Text MIT; voice output local evaluation only; redistribution unverified",
+      "duration": 4.85
+    },
+    {
+      "id": "typescript",
+      "spoken": "Convert the helper to TypeScript and add strict null checks.",
+      "verbatim": "Convert the helper to TypeScript and add strict null checks.",
+      "cleaned": "Convert the helper to TypeScript and add strict null checks.",
+      "identifiers": [
+        {
+          "text": "TypeScript",
+          "count": 1
+        }
+      ],
+      "tags": ["developer", "held-out"],
+      "context": {},
+      "vocabulary": "starter-v1",
+      "audio": "fixtures/generated/typescript.wav",
+      "sha256": "c192a2264cff7fafd2ea54c9fe9533bedac0b6fc780cdab68d17747bf25da1dc",
+      "language": "en",
+      "provenance": "Synthetic: Windows System.Speech; Microsoft Zira Desktop; original test text. No human speaker.",
+      "license": "Text MIT; voice output local evaluation only; redistribution unverified",
+      "duration": 4.03
+    },
+    {
+      "id": "localhost",
+      "spoken": "Start the dev server on local host port three thousand.",
+      "verbatim": "Start the dev server on local host port three thousand.",
+      "cleaned": "Start the dev server on localhost port 3000.",
+      "identifiers": [
+        {
+          "text": "localhost",
+          "count": 1
+        }
+      ],
+      "tags": ["developer", "held-out"],
+      "context": {},
+      "vocabulary": "starter-v1",
+      "audio": "fixtures/generated/localhost.wav",
+      "sha256": "304320bf548e208b8dd6a20a2b37cbd9000ff6724ab22061751806e4053a9e1d",
+      "language": "en",
+      "provenance": "Synthetic: Windows System.Speech; Microsoft Hazel Desktop; original test text. No human speaker.",
+      "license": "Text MIT; voice output local evaluation only; redistribution unverified",
+      "duration": 4.685
+    },
+    {
+      "id": "nodejs",
+      "spoken": "The Node JS process crashes when the cache is empty.",
+      "verbatim": "The Node JS process crashes when the cache is empty.",
+      "cleaned": "The Node.js process crashes when the cache is empty.",
+      "identifiers": [
+        {
+          "text": "Node.js",
+          "count": 1
+        }
+      ],
+      "tags": ["developer", "held-out"],
+      "context": {},
+      "vocabulary": "starter-v1",
+      "audio": "fixtures/generated/nodejs.wav",
+      "sha256": "86b082471f804616eb29fed09e131734e0f7b29d95ceebeaade03709d8736ac9",
+      "language": "en",
+      "provenance": "Synthetic: Windows System.Speech; Microsoft Zira Desktop; original test text. No human speaker.",
+      "license": "Text MIT; voice output local evaluation only; redistribution unverified",
+      "duration": 3.88
+    },
+    {
+      "id": "fetch-effect",
+      "spoken": "Wrap the fetch call in use effect with an empty dependency array.",
+      "verbatim": "Wrap the fetch call in use effect with an empty dependency array.",
+      "cleaned": "Wrap the fetch call in useEffect with an empty dependency array.",
+      "identifiers": [
+        {
+          "text": "useEffect",
+          "count": 1
+        }
+      ],
+      "profile": "code",
+      "tags": ["developer", "held-out"],
+      "context": {},
+      "vocabulary": "starter-v1",
+      "audio": "fixtures/generated/fetch-effect.wav",
+      "sha256": "b39bb1c825288ca3bac8a1dc8a340e01e8757c83e5f03176037464fe1df2e8ba",
+      "language": "en",
+      "provenance": "Synthetic: Windows System.Speech; Microsoft Hazel Desktop; original test text. No human speaker.",
+      "license": "Text MIT; voice output local evaluation only; redistribution unverified",
+      "duration": 4.73
+    },
+    {
+      "id": "release-checkout",
+      "spoken": "Switch to the release branch with git check out release.",
+      "verbatim": "Switch to the release branch with git check out release.",
+      "cleaned": "Switch to the release branch with git checkout release.",
+      "identifiers": [
+        {
+          "text": "git checkout",
+          "count": 1
+        }
+      ],
+      "profile": "code",
+      "tags": ["developer", "held-out"],
+      "context": {},
+      "vocabulary": "starter-v1",
+      "audio": "fixtures/generated/release-checkout.wav",
+      "sha256": "7241f10fd8ae063e22e0af9c8617c7521e65dcf92007b6d3def88f088c67c14c",
+      "language": "en",
+      "provenance": "Synthetic: Windows System.Speech; Microsoft Zira Desktop; original test text. No human speaker.",
+      "license": "Text MIT; voice output local evaluation only; redistribution unverified",
+      "duration": 3.66
+    },
+    {
+      "id": "graphql-cache",
+      "spoken": "We should cache the GraphQL responses for five minutes.",
+      "verbatim": "We should cache the GraphQL responses for five minutes.",
+      "cleaned": "We should cache the GraphQL responses for five minutes.",
+      "identifiers": [
+        {
+          "text": "GraphQL",
+          "count": 1
+        }
+      ],
+      "tags": ["developer", "held-out"],
+      "context": {},
+      "vocabulary": "starter-v1",
+      "audio": "fixtures/generated/graphql-cache.wav",
+      "sha256": "69fc6ed6f96be38d686372f0c48fc9b9e280295950579d0f90c194b8174f7871",
+      "language": "en",
+      "provenance": "Synthetic: Windows System.Speech; Microsoft Hazel Desktop; original test text. No human speaker.",
+      "license": "Text MIT; voice output local evaluation only; redistribution unverified",
+      "duration": 4.795
+    },
+    {
+      "id": "oauth-secret",
+      "spoken": "Rotate the OAuth client secret after the audit.",
+      "verbatim": "Rotate the OAuth client secret after the audit.",
+      "cleaned": "Rotate the OAuth client secret after the audit.",
+      "identifiers": [
+        {
+          "text": "OAuth",
+          "count": 1
+        }
+      ],
+      "tags": ["developer", "held-out"],
+      "context": {},
+      "vocabulary": "starter-v1",
+      "audio": "fixtures/generated/oauth-secret.wav",
+      "sha256": "4d06328d9028149308dab9a893c321da8f1f1c585307a9b338353ece7677a02d",
+      "language": "en",
+      "provenance": "Synthetic: Windows System.Speech; Microsoft Zira Desktop; original test text. No human speaker.",
+      "license": "Text MIT; voice output local evaluation only; redistribution unverified",
+      "duration": 3.425
     }
   ]
 }

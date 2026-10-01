@@ -4,5 +4,4 @@ release/
 .local/
 benchmark/results/
 benchmark/fixtures/
-docs/evidence/
 package-lock.json

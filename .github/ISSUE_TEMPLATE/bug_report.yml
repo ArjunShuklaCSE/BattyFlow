@@ -1,0 +1,34 @@
+name: Bug report
+description: Something doesn't work the way it should
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead. The message in the overlay or on the Home page helps a lot.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: BattyFlow version
+      description: Shown at the bottom of the sidebar.
+      placeholder: '0.2.0'
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: Windows 11 24H2
+  - type: input
+    id: setup
+    attributes:
+      label: Engine and model
+      description: Shown in the title bar, for example "Base (English) · CPU". Mention your GPU if you use the NVIDIA engine.
+  - type: input
+    id: app
+    attributes:
+      label: App you were dictating into
+      description: If the problem is about pasting.

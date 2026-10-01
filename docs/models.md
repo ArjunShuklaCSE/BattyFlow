@@ -1,46 +1,86 @@
-# Local runtime and model setup
+# Models
 
-## Verified acquisition in this workspace
+BattyFlow needs two things to transcribe: a **speech engine** (a whisper.cpp build) and a **speech model**. Polishing and the Command, Edit and Translate modes also need an optional **language model** and its engine (llama.cpp).
 
-| Asset | Pinned identity | Local location | Terms/capability |
-|---|---|---|---|
-| Whisper CPU CLI | whisper.cpp 1.8.3, official Windows x64 release | `.local/runtime/whisper-1.8.3/Release/whisper-cli.exe` | MIT; CPU path tested, `-ng`, 4 threads |
-| ASR model | ggml-tiny.en, 77,704,715 bytes | `.local/models/ggml-tiny.en.bin` | MIT model card; English only; F16 baseline |
-| Transformation CLI | llama.cpp b6532 (c4510dc9), official Windows CPU build | `.local/runtime/llama-b6532/llama-cli.exe` | MIT; CPU, 4 threads; no RPC endpoint configured |
-| Cleanup model | Qwen2.5-0.5B-Instruct Q4_K_M GGUF | `.local/models/qwen2.5-0.5b-instruct-q4_k_m.gguf` | Apache-2.0; English is the only locally declared/tested language; quality is limited |
+The easiest way to get them is the Models page: click Download, and BattyFlow fetches the file, checks it against the SHA-256 pinned in [`src/shared/catalog.ts`](../src/shared/catalog.ts), and switches to it.
 
-The ASR model SHA-256 is `921e4cf8686fdd993dcd081a5da5b6c365bfde1162e72b08d75ac75289920b1f`; Whisper executable SHA-256 is `0ff971e410240a0b97117432d771245698f376e06105c011959d2bfc4bb23311`. Qwen model SHA-256 is `74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db`. Both model hashes/sizes matched the official repositories' LFS tree manifests and are pinned in the app's local trusted-model catalog. Unknown model files still require your own trusted manifest and capability validation. Exact acquired manifests, including adjacent DLL hashes, are in `.local/manifests`. Hashes are not publisher signatures. Native code has the user's process privileges; only import binaries you trust.
+## What to pick
 
-## Manual acquisition on another machine
+| You have                           | Engine                      | Model              | Download |
+| ---------------------------------- | --------------------------- | ------------------ | -------: |
+| Any recent laptop, English         | whisper.cpp for CPU         | **Base (English)** |    90 MB |
+| An NVIDIA GPU, or another language | whisper.cpp for NVIDIA GPUs | **Large v3 Turbo** |  1.25 GB |
+| An older or busy machine           | whisper.cpp for CPU         | Tiny (English)     |    52 MB |
 
-Acquire on a networked machine, then transfer the complete directories and manifests to the offline machine:
+See [benchmarks](benchmarks.md) for measured accuracy and speed.
 
-- [Whisper 1.8.3 release](https://github.com/ggml-org/whisper.cpp/releases/tag/v1.8.3): Windows `whisper-bin-x64.zip`.
-- [Whisper ggml model card and files](https://huggingface.co/ggerganov/whisper.cpp): choose `ggml-tiny.en.bin` for the measured baseline. The `.en` suffix denotes English-only models.
-- [llama.cpp b6532 release](https://github.com/ggml-org/llama.cpp/releases/tag/b6532): `llama-b6532-bin-win-cpu-x64.zip` for optional cleanup.
-- [Official Qwen GGUF model](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF): `qwen2.5-0.5b-instruct-q4_k_m.gguf` for reproducing the experimental cleanup evaluation.
+## The catalog
 
-For the directory layout above, run `node scripts/local-manifests.mjs` and optionally `node scripts/llama-manifests.mjs`. Inspect the sources, hashes, and model licenses before importing the resulting JSON through the UI. Acquisition scripts do not run at app startup. Keep native libraries from the same release together; a binary alone is not a complete runtime. Do not mix DLLs from different builds.
+### Speech engines
 
-Example asset manifest:
+| Engine                            | File                                |   Size | Notes                                                                                                                                                                                                |
+| --------------------------------- | ----------------------------------- | -----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| whisper.cpp 1.9.4 for CPU         | `whisper-bin-x64.zip`               | 8.6 MB | Picks the fastest code path for your CPU automatically.                                                                                                                                              |
+| whisper.cpp 1.9.4 for NVIDIA GPUs | `whisper-cublas-12.4.0-bin-x64.zip` | 675 MB | CUDA 12.4 with cuBLAS included. Needs an NVIDIA driver 525 or newer. The first transcription after installing compiles GPU kernels (about 20 seconds); BattyFlow does that right after the download. |
+
+Both come from the official [whisper.cpp releases](https://github.com/ggml-org/whisper.cpp/releases/tag/b5130).
+
+### Speech models
+
+From [ggerganov/whisper.cpp on Hugging Face](https://huggingface.co/ggerganov/whisper.cpp). All MIT licensed, converted from OpenAI's Whisper.
+
+| Model               | File                           |   Size | Languages     |
+| ------------------- | ------------------------------ | -----: | ------------- |
+| Tiny (English)      | `ggml-tiny.en-q8_0.bin`        |  44 MB | English       |
+| Base (English)      | `ggml-base.en-q8_0.bin`        |  82 MB | English       |
+| Small (English)     | `ggml-small.en-q8_0.bin`       | 264 MB | English       |
+| Large v3 Turbo      | `ggml-large-v3-turbo-q5_0.bin` | 574 MB | 100 languages |
+| Base (multilingual) | `ggml-base-q8_0.bin`           |  82 MB | 99 languages  |
+
+English-only models are faster and more accurate for English. With a multilingual model, set Language to _Detect automatically_ or pick yours in Settings.
+
+### Polish (optional)
+
+| Item                    | File                                |   Size | License    |
+| ----------------------- | ----------------------------------- | -----: | ---------- |
+| llama.cpp b6532 for CPU | `llama-b6532-bin-win-cpu-x64.zip`   |  14 MB | MIT        |
+| Qwen2.5 1.5B Instruct   | `qwen2.5-1.5b-instruct-q4_k_m.gguf` | 1.1 GB | Apache-2.0 |
+| Qwen2.5 0.5B Instruct   | `qwen2.5-0.5b-instruct-q4_k_m.gguf` | 491 MB | Apache-2.0 |
+
+Polishing runs every dictation through the language model to fix grammar and resolve self-corrections ("meet at five, actually six"). Its output is checked before use: if it drops a negation, changes a number, loses a protected identifier or changes the length too much, BattyFlow keeps the plain transcript instead. Expect a second or two extra per dictation on the CPU.
+
+## Offline machines and your own models
+
+You can use any whisper.cpp-compatible model (and any whisper.cpp build that has the usual `whisper-cli` options) without downloading through the app.
+
+1. Copy the files to the machine. Keep an engine's DLLs next to its `.exe`.
+2. Write a manifest for each file:
+
+   ```powershell
+   node scripts/make-manifest.mjs D:\models\ggml-medium.en.bin --name "Medium (English)" `
+     --version medium.en --license MIT --languages en `
+     --provenance https://huggingface.co/ggerganov/whisper.cpp --out medium.json
+   ```
+
+   For an engine, point it at `whisper-cli.exe`; the DLLs beside it are hashed too.
+
+3. In BattyFlow, open **Models → Import your own files** and pick the manifest.
+
+A manifest looks like this (paths can be relative to the manifest):
 
 ```json
 {
-  "path": "../models/ggml-tiny.en.bin",
-  "name": "Whisper tiny.en F16",
-  "version": "ggml-tiny.en",
-  "sha256": "921e4cf8686fdd993dcd081a5da5b6c365bfde1162e72b08d75ac75289920b1f",
-  "size": 77704715,
-  "provenance": "https://huggingface.co/ggerganov/whisper.cpp",
+  "path": "ggml-medium.en.bin",
+  "name": "Medium (English)",
+  "version": "medium.en",
   "license": "MIT",
-  "languages": ["en"]
+  "provenance": "https://huggingface.co/ggerganov/whisper.cpp",
+  "languages": ["en"],
+  "size": 1533774781,
+  "sha256": "cc37e93478338ec7700281a7ac30a10128929eb8f427dda2e865faa8f6da4356"
 }
 ```
 
-Paths resolve against the manifest directory. The app checks existence, size, SHA-256, model magic, language declarations and native help flags. Optional `dependencies` entries list adjacent native filenames, sizes and SHA-256 values. Runtime metadata must declare the pinned version; Whisper 1.8.3 has no usable `--version` flag, so release provenance and executable hash are essential. llama.cpp b6532 is pinned and its actual help/single-turn framing was exercised. Default child environment drops proxies and arbitrary engine options; local model paths are passed directly, with no HF/download/RPC arguments.
+BattyFlow checks the size, SHA-256, file format (ggml or GGUF) and, for engines, the command-line options before using anything. A hash proves the file hasn't changed since you made the manifest; it doesn't prove who made the file, so compare it with the publisher's hash and only import engines you trust: they run with your user's permissions.
 
-## Hardware profiles
-
-The measured reference configuration is i7-12700H, CPU, 4 threads, tiny.en. This is a footprint/latency baseline, not a recommended accuracy winner. Larger Whisper models require separate latency, memory and accuracy evaluation on your machine. GPU backends and quantized ASR variants have not been measured. Peak native RSS is not yet recorded by the harness. CLI calls reload their models; repeated runs may benefit from filesystem cache but are not persistent warm inference.
-
-Qwen 0.5B cleanup removes fillers in some fixtures and preserves meaningful “like”/negation in those tested cases. It does not reliably resolve corrections and fails adversarial-data validation. Command drafting can invent code formatting, which the app rejects when unrequested. Do not infer translation support from the model name: configured pairs start empty and need separate review. No model is bundled into the application archive.
+If a file is named like a catalog model (for example `ggml-base.en-q8_0.bin`) but its hash differs, the import is refused.

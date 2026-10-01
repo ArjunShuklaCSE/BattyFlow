@@ -15,15 +15,31 @@ export function audioContext(samples: number): number {
   return Math.min(1500, Math.ceil(frames / 64) * 64);
 }
 
+/** The short window halves CPU time for small models. A GPU encodes the full window almost as fast, and large
+ * models start repeating sentences with a shortened window, so both keep the full 30 seconds. */
+export function useShortWindow(model: Asset, gpu: boolean): boolean {
+  return !gpu && model.size < 400_000_000;
+}
+
 /** whisper-cli prints one line per segment, plus bracketed tags for non-speech such as [BLANK_AUDIO]. */
 export function cleanTranscript(stdout: string): string {
-  return stdout
+  const text = stdout
     .split(/\r?\n/)
     .map(line => line.replace(/^\s*[[(][^\])]{0,40}[\])]\s*$/, '').trim())
     .filter(Boolean)
     .join(' ')
     .replace(/\s+/g, ' ')
     .trim();
+  // Whisper occasionally loops and says its last sentence twice. Nobody dictates the same sentence back to back.
+  const sentences = text.match(/[^.!?]+[.!?]+\s*|[^.!?]+$/g);
+  if (!sentences || sentences.join('') !== text) return text;
+  const kept: string[] = [];
+  for (const sentence of sentences) {
+    const key = sentence.trim().toLowerCase();
+    if (key.split(' ').length >= 3 && key === kept.at(-1)?.trim().toLowerCase()) continue;
+    kept.push(sentence);
+  }
+  return kept.join('').trim();
 }
 
 export class Whisper implements AsrEngine {
@@ -35,7 +51,7 @@ export class Whisper implements AsrEngine {
     readonly tempRoot: string,
     readonly threads = 4,
     readonly gpu = false,
-    readonly shortWindow = true,
+    readonly shortWindow = useShortWindow(model, gpu),
   ) {}
 
   /** Verifies files and CLI flags once. With a GPU it also runs one tiny transcription: the NVIDIA driver

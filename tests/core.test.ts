@@ -13,7 +13,7 @@ import { EnergyVad, Resampler, readWav, wav, rms } from '../src/shared/audio';
 import { wer, identifiers } from '../benchmark/metrics';
 import { finalPipeline } from '../src/main/pipeline';
 import { PreviewScheduler } from '../src/main/asr/preview';
-import { audioContext, cleanTranscript } from '../src/main/asr/whisper';
+import { audioContext, cleanTranscript, useShortWindow } from '../src/main/asr/whisper';
 import { defaults, validateSettings } from '../src/main/settings/store';
 import { runProcess } from '../src/main/privacy/process';
 import { removeFillers, formatForProfile, forTarget, profileFor, countWords } from '../src/main/text';
@@ -141,9 +141,22 @@ test('whisper output cleanup and encoder window', () => {
   assert.equal(cleanTranscript(' [BLANK_AUDIO]\n'), '');
   assert.equal(cleanTranscript(' (upbeat music)\n Real words.\n'), 'Real words.');
   assert.equal(cleanTranscript(' Use [brackets] inside text.\n'), 'Use [brackets] inside text.');
+  assert.equal(
+    cleanTranscript(' Do not delete the backup.\n Do not delete the backup.\n'),
+    'Do not delete the backup.',
+  );
+  assert.equal(cleanTranscript(' No. No.\n'), 'No. No.');
+  assert.equal(
+    cleanTranscript(' The Node.js process crashes. Then it restarts.\n'),
+    'The Node.js process crashes. Then it restarts.',
+  );
   assert.equal(audioContext(16000 * 3), 512);
   assert.equal(audioContext(16000 * 30), 1500);
   assert.ok(audioContext(16000) >= 50 + 300);
+  const model = (size: number) => ({ size }) as Parameters<typeof useShortWindow>[0];
+  assert.equal(useShortWindow(model(82e6), false), true);
+  assert.equal(useShortWindow(model(82e6), true), false);
+  assert.equal(useShortWindow(model(574e6), false), false);
 });
 
 test('WER substitutions, insertion, deletion and silence', () => {

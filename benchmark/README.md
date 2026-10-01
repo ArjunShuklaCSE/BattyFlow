@@ -1,31 +1,53 @@
-# Reproducible smoke evaluation
+# Benchmark
 
-`manifest.json` contains 18 cases with original test text, independent verbatim and intended-clean references, identifiers/occurrence counts, profiles, tags, language, audio hash, duration, and provenance. Generated audio is synthetic Windows System.Speech (Hazel, Zira, David when installed), plus deterministic silence/noise. It is not consented human audio or accent validation. The test text is MIT; generated proprietary-voice output is for local evaluation only because redistribution terms were not independently established. Generated WAVs are not included in the distributable package or git history.
+Measures transcription accuracy and latency on a fixed set of clips, using the same engine settings and text pipeline as the app. Results for one machine are in [docs/benchmarks.md](../docs/benchmarks.md).
 
-Generate with `npm run fixtures:synthetic`, then `node scripts/finalize-fixtures.mjs`. Regeneration updates hashes because voices/OS synthesis may differ. Keep hashes fixed when comparing runs. To import consented audio, copy PCM16 **16 kHz mono** WAVs under `benchmark/fixtures`, then add manifest entries with their actual SHA-256, duration, language, provenance/consent, license, references, expected identifiers, context, and tags. `readWav` rejects incompatible containers; do not rename compressed audio to WAV. Use a local audio editor to convert before import. Record the conversion tool/version. Do not claim consent or licenses without evidence.
+## The clips
 
-Alternatively use `npx --no-install tsx benchmark/import.ts --audio local.wav --metadata annotation.json`. The importer validates PCM format, derives duration/hash, preserves existing files, and atomically updates the manifest. Metadata requires `id`, `language`, `provenance`, `license`, `verbatim`, `cleaned`, `identifiers` (array of `{text,count}`), and `kind` (`human` or `synthetic`). Human recordings additionally require your explicit `consented: true` attestation. Optional `profile`, `tags`, and `critical` annotations follow the existing manifest. This action deliberately retains the audio for evaluation; consent and redistribution rights remain supplied attestations, not independently verified facts.
+[`manifest.json`](manifest.json) lists 28 clips. Each has the sentence that was spoken, a verbatim reference (what a perfect transcript of the words would be), a cleaned reference (what BattyFlow should type, with exact spellings such as `useEffect`), the technical terms it contains, an optional writing profile, and tags.
 
-`tuning` cases are separate from `held-out` tags. These are still a tiny synthetic smoke suite, not a held-out population study. No dictionary was tuned on reported held-out errors. Known failures such as “Kubernetes” becoming “Cuba Arnett” remain visible rather than being added as fabricated vocabulary aliases.
+The audio is generated locally with Windows' built-in speech voices and is not committed:
+
+```powershell
+npm run fixtures   # writes benchmark/fixtures/generated/*.wav and updates hashes and durations
+```
+
+Different Windows builds can produce slightly different audio, so compare runs made with the same generated files. The sentences are MIT licensed; the generated voice audio is for local evaluation only.
+
+To add your own recordings (16 kHz mono 16-bit PCM WAV):
+
+```powershell
+npx tsx benchmark/import.ts --audio clip.wav --metadata clip.json
+```
+
+The metadata needs `id`, `language`, `provenance`, `license`, `verbatim`, `cleaned`, `identifiers` (an array of `{ "text": "...", "count": 1 }`) and `kind` (`human` or `synthetic`). Human recordings also need `"consented": true`, your statement that the speaker agreed to the recording being used.
+
+## Running
+
+```powershell
+npm run benchmark -- --runtime engine.json --model model.json
+```
+
+`engine.json` and `model.json` are asset manifests; make them with `scripts/make-manifest.mjs` (see [docs/models.md](../docs/models.md)).
+
+| Flag                            | Effect                                                                    |
+| ------------------------------- | ------------------------------------------------------------------------- |
+| `--gpu`                         | Use a CUDA build of whisper.cpp                                           |
+| `--no-prompt`                   | Don't pass the vocabulary to Whisper                                      |
+| `--full-window`                 | Always use Whisper's full 30-second encoder window                        |
+| `--threads N`                   | CPU threads (default 8)                                                   |
+| `--passes N`                    | Run the whole set N times                                                 |
+| `--output DIR`                  | Where to write results (default `benchmark/results/latest`)               |
+| `--llama F --llm-model F`       | Also score the optional language-model polish                             |
+| `--max-wer X`, `--max-p95-ms N` | Exit with an error if raw WER or p95 latency is above a threshold         |
+| `--baseline report.json`        | Compare against an earlier run (`--max-latency-ratio`, `--max-wer-delta`) |
 
 ## Metrics
 
-- Raw WER uses Levenshtein substitutions/deletions/insertions over NFKC, lowercase, punctuation-separated whitespace words. Digits and spelled-out numbers are **not** made equivalent; e.g. `42` vs `forty two` increases lexical WER. Identifiers are scored separately with exact case, punctuation and boundary-aware repeated occurrences.
-- Cleaned WER compares to the separate intended-clean reference. Raw, local-cleanup, and vocabulary-plus-cleanup columns use the same raw ASR output. An extra vocabulary-only column isolates deterministic resolution. Unavailable/failed cleanup is reported explicitly, never substituted into the cleanup score.
-- Zero-word references have undefined WER; raw hallucinated words are counted. The separately reported VAD-gated output suppresses silence/noise. This distinction matters: the raw tiny model hallucinated on silence in the measured suite.
-- Critical-content checks are lexical review candidates, not automated semantic verdicts. Numbers written as digits can be semantically correct despite a flagged spelling difference. Inspect per-case output and `docs/verification.md` for human review notes.
-- ASR elapsed time includes checksum validation, process startup, WAV I/O, model load, inference and temp cleanup. Real-time factor divides that wall time by source audio duration. Every CLI invocation reloads the model. Later passes have potentially warmer OS cache, not a persistent warm engine.
-- App capture tests separately record native-target capture, visible overlay, microphone-ready, stop-to-ready and first-preview timings where executed. External insertion latency is not measured because delivery is manual. Native peak memory and isolated model-load time are presently unavailable; runner peak RSS is labeled as runner-only.
+- **Raw WER** compares Whisper's output with the verbatim reference. Words are lowercased and punctuation is ignored; digits and spelled-out numbers count as different words.
+- **Final WER** compares what BattyFlow would type, after filler removal, vocabulary and writing profile, with the cleaned reference.
+- **Technical terms exact** counts occurrences spelled exactly, case included, before and after vocabulary.
+- **Latency** runs from handing the audio to whisper.cpp until the transcript comes back, including process start and model load. File hashing and GPU warm-up happen once before timing, as in the app.
+- Silent and noise-only clips have no reference words; any words transcribed on them are counted as hallucinations, and the app's silence gate is scored separately.
 
-Reports go to `benchmark/results/<name>/report.json` and `summary.md`. Evidence snapshots are copied into `docs/evidence` for handoff. Reported p50/p95 always include sample counts; 18 or 36 samples do not establish reliable tail latency. Translation and editing do not use dictation WER and are not represented as passed benchmarks.
-
-## Commands and gates
-
-```powershell
-npm run benchmark -- --passes 2 --output benchmark/results/baseline
-npm run benchmark -- --llama .local/manifests/llama.json --llm-model .local/manifests/llmModel.json --output benchmark/results/cleanup
-npm run benchmark -- --baseline benchmark/results/baseline/report.json --max-latency-ratio 1.25 --max-wer-delta 0.02 --output benchmark/results/comparison
-npm run benchmark -- --max-wer 0.25 --max-p95-ms 3000
-```
-
-Missing files, hash/duration mismatch, inference failures, required transformation validation failures, or specified regression thresholds produce a nonzero exit. Smoke quality failures are retained. A successful raw-ASR run does not satisfy external-insertion, human accuracy, privacy/firewall, or model-semantic gates.
+Each run writes `report.json` (every transcript and measurement) and `summary.md`.

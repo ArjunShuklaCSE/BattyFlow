@@ -1,71 +1,157 @@
-# BattyFlow
+<p align="center">
+  <img src="assets/brand/logo.svg" width="96" height="96" alt="BattyFlow logo">
+</p>
 
-A local Electron dictation application for Windows, with explicit fallback adapters for macOS, X11, and Wayland. **This is a working preview, not an acceptance-complete release.** Windows capture, real Whisper transcription, vocabulary resolution, preview, explicit copy, and in-app insertion are implemented. External automatic insertion is deliberately not enabled. See [implementation status](IMPLEMENTATION_STATUS.md) for failed and unverified gates.
+<h1 align="center">BattyFlow</h1>
 
-## Run the available Windows build
+<p align="center">
+  <strong>Hold a key, say it, let go. The words appear wherever your cursor is.</strong><br>
+  Offline dictation for Windows that runs Whisper on your own machine and gets developer words right.
+</p>
 
-Download the unsigned Windows x64 executable from [Releases](https://github.com/ArjunShuklaCSE/BattyFlow/releases/tag/v0.1.0-preview). This preview includes the recording-startup and overlay fix. Quit an older running copy from its tray menu before opening it; closing the window only hides it.
+<p align="center">
+  <a href="https://github.com/ArjunShuklaCSE/BattyFlow/releases/latest"><img alt="Download" src="https://img.shields.io/github/v/release/ArjunShuklaCSE/BattyFlow?label=download&color=8b5cf6"></a>
+  <a href="https://github.com/ArjunShuklaCSE/BattyFlow/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/ArjunShuklaCSE/BattyFlow/actions/workflows/ci.yml/badge.svg"></a>
+  <img alt="Windows 10 and 11" src="https://img.shields.io/badge/Windows-10%20%7C%2011-0b0c10">
+  <img alt="Runs offline" src="https://img.shields.io/badge/runs-offline-34d399">
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/github/license/ArjunShuklaCSE/BattyFlow?color=0b0c10"></a>
+</p>
 
-Models and native inference runtimes are separate downloads and are **not included** in the executable or Git repository. The app does not download anything at startup. Follow [local model setup](docs/models.md) to acquire the pinned files and generate their manifests. A setup callout appears until speech assets are imported; startup errors also appear in the overlay.
+<p align="center">
+  <img src="docs/images/demo.png" width="860" alt="Dictating into an editor: the overlay shows a live waveform while recording, then the sentence is pasted with OAuth, useEffect and GitHub spelled correctly">
+</p>
 
-1. After completing model setup, open **Local models**. Import the generated `.local/manifests/whisper.json`, then `.local/manifests/asrModel.json`. Keep the runtime's DLLs beside its executable.
-2. Grant microphone access in Windows Settings → Privacy & security → Microphone. BattyFlow requests audio only; camera permission is denied.
-3. Use **Start recording**, or **Ctrl+Alt+D**, speak, then press the same control to stop. The shortcut is **Cmd+Alt+D** on macOS, where validation is still outstanding.
-4. Review the transcript. **Insert result into test field** exercises the app's own editor. **Copy text** replaces clipboard contents on your explicit request; choose the intended external field and paste manually.
-5. **Cancel** remains available in the app, overlay, and tray. No permanent Escape binding is installed. Closing the main window hides it when a tray is available; use tray **Quit** to exit.
+## Why BattyFlow
 
-Optional: import `.local/manifests/llama.json` and `.local/manifests/llmModel.json` for local cleanup/command drafting. The tested small Qwen model has known quality failures; review all results. Dictation falls back to the alias-resolved pre-cleanup transcript on validation failures. Other modes fail visibly. Translation pairs start empty. Windows selection editing uses the dedicated **Ctrl+Alt+E** shortcut and always offers a preview/manual replacement; an empty, secure, or unavailable selection cannot begin an edit.
+Most dictation tools send your voice to a server, and most local ones turn `useEffect` into "use effect" and `kubectl` into "cube control". BattyFlow does neither.
 
-## Development
+- Hold <kbd>Ctrl</kbd> <kbd>Win</kbd> in any app, talk, and let go. The text is typed where your cursor was: editor, terminal, browser or chat. For longer dictation, tap <kbd>Ctrl</kbd> <kbd>Alt</kbd> <kbd>D</kbd> to start and again to stop.
+- A vocabulary maps what you say to what you mean ("get user by id" becomes `getUserById`) and steers Whisper toward those spellings. In our tests that took exact technical terms from 8 to 14 out of 18 with the same model.
+- A typical sentence takes about half a second from letting go to text, with the default model on a laptop CPU. With an NVIDIA GPU you can run Large v3 Turbo, which covers 100 languages, at about a second.
+- Output adapts to the app. Terminal commands come out as one line with no full stop (`git status`, not "Git status."), editors get code spelling, and chat apps get relaxed punctuation.
+- After pasting, BattyFlow puts back whatever you had copied, and dictated text stays out of Windows clipboard history.
+- Nothing leaves your PC: no account, no telemetry, no cloud. The only network request is a model download you click, checked against a pinned SHA-256.
 
-Validated host: Windows 11 build 26200, x64, Intel i7-12700H, Node 24.18.0/npm 11.16.0. Windows build also needs the .NET Framework 4.x C# compiler and UI Automation assemblies shipped with this host. Keep the project on a local filesystem. No npm runtime dependencies are used.
+## Get started
+
+1. Download `BattyFlow-Setup-0.2.0.exe` from the [latest release](https://github.com/ArjunShuklaCSE/BattyFlow/releases/latest). There's also a portable `.exe` if you'd rather not install.
+2. Open it and click **Download and set up**. That's 90 MB for the standard setup, or 1.25 GB for the NVIDIA GPU setup if BattyFlow finds a supported card.
+3. Hold <kbd>Ctrl</kbd> <kbd>Win</kbd> in any app and talk.
+
+> [!NOTE]
+> The builds aren't code-signed yet, so Windows SmartScreen may say "Windows protected your PC". Click **More info → Run anyway**. You can check a download against the SHA-256 listed on the release page, or [build it yourself](#build-from-source).
+
+## Screenshots
+
+<table>
+  <tr>
+    <td><img src="docs/images/home.png" alt="Home: push-to-talk hint, last transcript, scratch pad and stats"></td>
+    <td><img src="docs/images/models.png" alt="Models: engines and models with speed and accuracy ratings"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/vocabulary.png" alt="Vocabulary: spoken forms mapped to exact spellings"></td>
+    <td><img src="docs/images/history.png" alt="History: recent transcripts grouped by day"></td>
+  </tr>
+</table>
+
+## How it works
+
+```mermaid
+flowchart LR
+  A["Hold Ctrl+Win"] --> B["Record locally<br>16 kHz"]
+  B --> C["whisper.cpp<br>with your vocabulary"]
+  C --> D["Clean up<br>fillers, spellings, app style"]
+  D --> E["Paste into the<br>window you were in"]
+  E --> F["Restore your<br>clipboard"]
+```
+
+BattyFlow remembers which window you started in. When the text is ready, it pastes only if that window is still in front, and never into password fields or apps running as administrator. If anything changed, it copies the text instead and tells you to press <kbd>Ctrl</kbd> <kbd>V</kbd>. Details are in [architecture](docs/architecture.md).
+
+## Accuracy and speed
+
+Measured on an Intel i7-12700H laptop with an RTX 3060, on 28 synthetic test sentences including 10 developer ones:
+
+| Setup                                   | Word error rate | Technical terms exact | Time after you stop |
+| --------------------------------------- | --------------: | --------------------: | ------------------: |
+| Base (English) on the CPU, **default**  |            7.3% |               14 / 18 |              0.42 s |
+| Base (English), vocabulary steering off |           11.4% |                8 / 18 |              0.39 s |
+| Tiny (English) on the CPU               |           10.4% |               15 / 18 |              0.27 s |
+| Large v3 Turbo on the GPU               |            5.2% |               17 / 18 |               1.1 s |
+
+Synthetic voices are cleaner than real ones, so expect more errors with real speech. Methodology, every configuration and how to reproduce it: [benchmarks](docs/benchmarks.md).
+
+## Models
+
+Pick and switch models on the Models page. Everything downloads from the official whisper.cpp releases and Hugging Face, and nothing is used until its hash checks out.
+
+| Model               |   Size | Languages | Good for                                    |
+| ------------------- | -----: | --------- | ------------------------------------------- |
+| Tiny (English)      |  44 MB | English   | Older machines, quick notes                 |
+| **Base (English)**  |  82 MB | English   | Most people. Fast on any recent CPU         |
+| Small (English)     | 264 MB | English   | Fast CPUs and GPUs                          |
+| Large v3 Turbo      | 574 MB | 100       | NVIDIA GPUs, best accuracy, other languages |
+| Base (multilingual) |  82 MB | 99        | Other languages on the CPU                  |
+
+An optional local language model (Qwen2.5 via llama.cpp) can polish grammar and powers three extra modes. On an offline machine you can import any whisper.cpp model with a small manifest. See [models](docs/models.md).
+
+## Vocabulary
+
+Teach BattyFlow your words on the Vocabulary page:
+
+| Written as    | When you say                  | Where      |
+| ------------- | ----------------------------- | ---------- |
+| `getUserById` | get user by id                | Code       |
+| `kubectl`     | cube control, kube control    | Everywhere |
+| `PostgreSQL`  | postgres q l, postgres sequel | Everywhere |
+
+Spoken forms become exact spellings, longer matches win, and when two entries share a spoken form BattyFlow leaves your words alone rather than guess. "Where" limits a word to editors, terminals, chat or email apps, which BattyFlow detects from the window you're dictating into. Export and import as JSON to share a team vocabulary.
+
+## Modes
+
+| Mode           | Shortcut                                                                            | What it does                                                                  |
+| -------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Dictation      | Hold <kbd>Ctrl</kbd> <kbd>Win</kbd>, or <kbd>Ctrl</kbd> <kbd>Alt</kbd> <kbd>D</kbd> | Types what you say.                                                           |
+| Command draft  | <kbd>Ctrl</kbd> <kbd>Alt</kbd> <kbd>J</kbd>                                         | Turns a rambling spoken request into a clear prompt for a coding agent.       |
+| Edit selection | <kbd>Ctrl</kbd> <kbd>Alt</kbd> <kbd>E</kbd>                                         | Select text, say how to change it ("make this more formal"), get it replaced. |
+| Translate      | Settings                                                                            | Speak in one language, paste in another.                                      |
+
+Command, Edit and Translate use the optional local language model. Every shortcut can be changed in Settings, and push-to-talk can be Ctrl+Win, Right Ctrl, Right Alt or Caps Lock.
+
+## Privacy
+
+- Audio is held in memory and in a temporary file only while Whisper reads it, then deleted.
+- No accounts, analytics, crash reports, update checks or cloud fallback.
+- The app makes no network requests at all unless you click Download, and then only to GitHub and Hugging Face.
+- History stays on your PC, and you can turn it off or clear it.
+
+[docs/privacy.md](docs/privacy.md) lists every file BattyFlow writes and shows how to firewall it to check for yourself.
+
+## Build from source
+
+You need Windows 10 or 11 (x64) and Node.js 22 or newer. The native helper is compiled with the C# compiler that comes with Windows, so there's nothing else to install.
 
 ```powershell
+git clone https://github.com/ArjunShuklaCSE/BattyFlow.git
+cd BattyFlow
 npm ci
-npm run check
-npm start
-npm run test:desktop
-node scripts/capture-smoke.mjs
-node scripts/capture-smoke.mjs --physical
-node scripts/failure-smoke.mjs
-node scripts/target-smoke.mjs
-npm run package
-node scripts/capture-smoke.mjs --packaged
-node scripts/portable-smoke.mjs
+npm start             # build and run
+npm run check         # typecheck, unit tests, build
+npm run package       # installer and portable .exe in release/
 ```
 
-Dependency installation, Electron's development binary acquisition, and electron-builder's packaging-resource acquisition need internet access. Those are developer operations outside the application. A restricted shell may need permission to execute native build tools. The lockfile pins resolved dependencies. The package is unsigned; signing/notarization is not configured. macOS/Linux packaging recipes are provided but not validated.
+Integration checks drive the real app: `npm run smoke` (setup download, recording and transcription with a synthetic voice, IPC boundaries) and `node scripts/paste-smoke.mjs` (pasting into another window, clipboard restore, password fields). See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-`npm run package` writes `release/BattyFlow 0.1.0.exe` and `release/win-unpacked/BattyFlow.exe`. The locally validated hotfix was built separately under `release/recording-fix`. Recording tests require the manually acquired models and generated synthetic fixtures; run `npm run fixtures:synthetic` before the capture smoke tests.
+## Limitations
 
-## Offline model setup
+- Paste and push-to-talk are Windows only for now. On macOS and Linux the app records, transcribes and copies.
+- English is the best-tested language. Large v3 Turbo handles 100 languages, but the benchmark only covers English.
+- The builds are unsigned, so SmartScreen warns the first time you run one.
+- Each dictation starts whisper.cpp fresh and loads the model, which costs about 100 ms with the default model.
 
-See [model setup](docs/models.md) for pinned versions, checksums, capabilities, licenses, and manual acquisition. Import **JSON asset manifests**, not a model renamed to JSON. Models may remain in an explicitly selected local directory; settings store only their paths and metadata. UNC/network paths are rejected. You must avoid mapped network drives too: drive-type verification is not implemented. A checksum made from an arbitrary file establishes integrity, not publisher authenticity.
+## Credits
 
-For an explicit developer setup using manifests already acquired in this workspace, run `npx tsx scripts/configure-local.ts .local/manifests "$env:APPDATA\BattyFlow"`, then restart the app. This verifies the runtime, adjacent DLLs, model hash and format before saving missing speech settings. Existing preferences and model choices are preserved. The running app never executes this setup command automatically.
+BattyFlow is built on [whisper.cpp](https://github.com/ggml-org/whisper.cpp) and [llama.cpp](https://github.com/ggml-org/llama.cpp) by Georgi Gerganov and contributors, OpenAI's [Whisper](https://github.com/openai/whisper) models, Alibaba's [Qwen2.5](https://huggingface.co/Qwen), [Electron](https://www.electronjs.org/), and the [Geist](https://vercel.com/font) typeface by Vercel (SIL Open Font License).
 
-No account, API key, hosted inference, updater, telemetry, repository indexing, or command execution is present. Runtime guards are defense in depth; see [privacy](docs/privacy.md) for the native-process boundary and OS firewall procedure. Text copied or inserted into another app follows that app's data handling.
+## License
 
-## Evaluation
-
-```powershell
-# Local synthesis: 18 original test sentences/noise cases; not human recordings.
-npm run fixtures:synthetic
-node scripts/finalize-fixtures.mjs
-
-npm run benchmark -- --passes 2
-npm run benchmark -- --llama .local/manifests/llama.json --llm-model .local/manifests/llmModel.json --output benchmark/results/with-cleanup
-npm run benchmark -- --baseline benchmark/results/latest/report.json --max-latency-ratio 1.25 --max-wer-delta 0.02 --output benchmark/results/comparison
-```
-
-The cleanup comparison may exit nonzero because required validation fails. This is an evaluation result, not an installation error. Reports include per-case outputs, separate raw/cleaned references, exact identifier counts, hashes, and measurements. See [benchmark methodology](benchmark/README.md) and [verification evidence](docs/verification.md). No benchmark sends text into arbitrary user applications.
-
-## Layout
-
-- `src/main`: lifecycle, inference, settings, privacy, vocabulary, platform boundaries.
-- `src/preload`: separate narrow UI and audio bridges.
-- `src/renderer`: settings/studio, non-activating overlay, hidden capture renderer, AudioWorklet.
-- `native/windows`: read-only UI Automation probe; never copies, pastes, or sends keystrokes.
-- `tests`, `scripts`, `benchmark`: deterministic invariants, desktop checks, and real inference measurements.
-
-Read [decisions](docs/decisions.md), [platform support](docs/platform-support.md), and [remaining gates](IMPLEMENTATION_STATUS.md) before treating this preview as a daily-driver automatic dictation tool.
+[MIT](LICENSE)

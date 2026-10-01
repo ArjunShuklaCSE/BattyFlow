@@ -5,9 +5,17 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { Whisper } from '../src/main/asr/whisper';
 import { Llama } from '../src/main/llm/llama';
-import { importManifest, privateTempRoot, defaults } from '../src/main/settings/store';
+import { importManifest, privateTempRoot } from '../src/main/settings/store';
 import { readWav, EnergyVad } from '../src/shared/audio';
-import { resolve, starter, protect, restore, literalIdentifiers } from '../src/main/vocabulary/resolver';
+import {
+  resolve,
+  starter,
+  protect,
+  restore,
+  literalIdentifiers,
+  vocabularyPrompt,
+} from '../src/main/vocabulary/resolver';
+import { formatForProfile, removeFillers } from '../src/main/text';
 import { wer, identifiers, percentile, words } from './metrics';
 import type { Profile, TextTransformer } from '../src/shared/types';
 const args = process.argv.slice(2);
@@ -48,7 +56,18 @@ const output = pathResolve(option('--output', 'benchmark/results/latest'));
 await mkdir(output, { recursive: true });
 const tempRoot = pathResolve('.local/benchmark-sessions');
 await privateTempRoot(tempRoot);
-const engine = new Whisper(runtime, model, tempRoot, Number(option('--threads', '4')));
+// Same engine settings as the app: greedy decoding, short encoder window, vocabulary prompt. Flags turn parts off.
+const gpu = args.includes('--gpu');
+const usePrompt = !args.includes('--no-prompt');
+const engine = new Whisper(
+  runtime,
+  model,
+  tempRoot,
+  Number(option('--threads', '8')),
+  gpu,
+  args.includes('--full-window') ? false : undefined,
+);
+await engine.prepare(); // hashing and GPU warm-up are one-time costs, not per-dictation latency
 let transformer: TextTransformer | null = null;
 let transformationMetadata: unknown = null;
 if (option('--llama') && option('--llm-model')) {
@@ -117,7 +136,8 @@ for (let pass = 0; pass < passes; pass++)
       provenance: fixture.provenance,
     };
     try {
-      const raw = await engine.transcribe(pcm, fixture.language, controller.signal);
+      const prompt = usePrompt ? vocabularyPrompt(starter, fixture.profile ?? 'neutral') : '';
+      const raw = await engine.transcribe(pcm, fixture.language, controller.signal, prompt || undefined);
       entry.asrMs = performance.now() - start;
       entry.realTimeFactor = entry.asrMs / 1000 / fixture.duration;
       const vad = new EnergyVad();
@@ -132,6 +152,13 @@ for (let pass = 0; pass < passes; pass++)
       entry.gatedRaw = score(delivered, fixture.verbatim, fixture);
       entry.vocabularyOnly = score(
         resolve(delivered, starter, fixture.profile ?? 'neutral').text,
+        fixture.cleaned,
+        fixture,
+      );
+      // What the app delivers: filler removal, vocabulary, then formatting for the writing profile.
+      const profile = fixture.profile ?? 'neutral';
+      entry.final = score(
+        formatForProfile(resolve(removeFillers(delivered), starter, profile).text, profile),
         fixture.cleaned,
         fixture,
       );
@@ -198,9 +225,19 @@ const summary = {
   criticalReviewCandidates: measured
     .filter(x => x.raw.criticalCandidates.length)
     .map(x => ({ id: x.id, missing: x.raw.criticalCandidates })),
+  finalCorpusWer: (() => {
+    const scored = speechMeasured.map(x => x.final.wer);
+    const words = scored.reduce((n, w) => n + w.referenceWords, 0);
+    return words ? scored.reduce((n, w) => n + w.substitutions + w.deletions + w.insertions, 0) / words : null;
+  })(),
+  rawIdentifiers: (() => {
+    const correct = measured.reduce((n, x) => n + x.raw.identifiers.correct, 0),
+      total = measured.reduce((n, x) => n + x.raw.identifiers.total, 0);
+    return { correct, total, rate: total ? correct / total : null };
+  })(),
   vocabularyPreservation: (() => {
-    const correct = measured.reduce((n, x) => n + x.vocabularyOnly.identifiers.correct, 0),
-      total = measured.reduce((n, x) => n + x.vocabularyOnly.identifiers.total, 0);
+    const correct = measured.reduce((n, x) => n + x.final.identifiers.correct, 0),
+      total = measured.reduce((n, x) => n + x.final.identifiers.total, 0);
     return { correct, total, rate: total ? correct / total : null };
   })(),
 };
@@ -246,7 +283,13 @@ const report = {
   transformer: transformationMetadata,
   runtime: { name: runtime.name, version: runtime.version, sha256: runtime.sha256 },
   model: { name: model.name, sha256: model.sha256, languages: model.languages },
-  settings: { threads: engine.threads, backend: 'CPU (-ng)', profile: 'per fixture', passes },
+  settings: {
+    threads: engine.threads,
+    backend: gpu ? 'CUDA' : 'CPU',
+    vocabularyPrompt: usePrompt,
+    shortWindow: engine.shortWindow,
+    passes,
+  },
   limitations: [
     'Synthetic local smoke suite; no human-speech or accent validation',
     'Every CLI invocation reloads the model; pass 0 is first pass, later passes use warm OS cache; not persistent warm-model latency',
@@ -274,5 +317,11 @@ const rows = cases
 await writeFile(
   pathResolve(output, 'summary.md'),
   `# ${manifest.suite}\n\n${report.at} · ${report.hardware.cpu} · ${report.hardware.os} ${report.hardware.release}\n\nRuntime ${runtime.version}; model ${model.name}. Commit: ${commit}.\n\n${summary.sampleCount} samples, raw corpus WER ${summary.rawCorpusWer?.toFixed(3)}, ASR p50 ${summary.asrMs.p50?.toFixed(0)} ms / p95 ${summary.asrMs.p95?.toFixed(0)} ms.\n\n| Clip | Pass | Raw WER | Cleanup WER | Vocabulary + cleanup WER | ASR ms | Exact identifiers after vocabulary only |\n|---|---:|---:|---:|---:|---:|---:|\n${rows}\n\n## Limitations\n\n${report.limitations.map(x => `- ${x}`).join('\n')}\n\n## Required failures\n\n${failures.length ? failures.join('\n') : 'None in executed ASR gates. This does not complete product acceptance.'}\n`,
+);
+console.log(
+  `
+${model.name} · ${gpu ? 'CUDA' : 'CPU'} · prompt ${usePrompt ? 'on' : 'off'}: WER ${((summary.rawCorpusWer ?? 0) * 100).toFixed(1)}% raw, ${((summary.finalCorpusWer ?? 0) * 100).toFixed(1)}% final, ` +
+    `terms exact ${summary.rawIdentifiers.correct}/${summary.rawIdentifiers.total} raw, ${summary.vocabularyPreservation.correct}/${summary.vocabularyPreservation.total} after vocabulary, ` +
+    `p50 ${summary.asrMs.p50?.toFixed(0)} ms, p95 ${summary.asrMs.p95?.toFixed(0)} ms (n=${summary.sampleCount})`,
 );
 if (failures.length) process.exitCode = 1;

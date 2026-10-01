@@ -1,0 +1,40 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run package
+      - name: Write checksums and release notes
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem release -Filter 'BattyFlow-*.exe'
+          $sums = $files | ForEach-Object { '{0}  {1}' -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(), $_.Name }
+          Set-Content release/SHA256SUMS.txt $sums
+          $version = $env:GITHUB_REF_NAME.TrimStart('v')
+          $changelog = Get-Content CHANGELOG.md -Raw
+          $notes = [regex]::Match($changelog, "(?ms)^## $([regex]::Escape($version))\s*\r?\n(.*?)(?=^## |\z)").Groups[1].Value.Trim()
+          $notes += "`n`n### Checksums (SHA-256)`n`n``````text`n$($sums -join "`n")`n``````"
+          Set-Content release/notes.md $notes
+      - name: Publish the release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $assets = @(Get-ChildItem release -Filter 'BattyFlow-*.exe' | ForEach-Object FullName) + 'release/SHA256SUMS.txt'
+          gh release create $env:GITHUB_REF_NAME @assets --title "BattyFlow $($env:GITHUB_REF_NAME)" --notes-file release/notes.md

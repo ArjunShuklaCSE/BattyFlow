@@ -1,0 +1,11 @@
+name: Feature request
+description: Suggest an idea or a model to add
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like BattyFlow to do?
+      description: The problem you're trying to solve helps more than a specific solution.
+    validations:
+      required: true

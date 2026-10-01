@@ -2,6 +2,7 @@
 // overlay behaviour and the IPC boundary. Nothing is pasted into other apps (delivery is "show in BattyFlow").
 //
 //   npm run build && node scripts/smoke.mjs [--model tiny.en] [--keep]
+//   node scripts/smoke.mjs --exe release/win-unpacked/BattyFlow.exe     (the packaged app)
 //
 // Needs network access for the first run (about 52 MB). Downloads are cached in .local/smoke-assets.
 import { _electron as electron } from 'playwright';
@@ -11,6 +12,7 @@ import assert from 'node:assert/strict';
 
 const arg = (name, fallback) => (process.argv.includes(name) ? process.argv[process.argv.indexOf(name) + 1] : fallback);
 const model = arg('--model', 'tiny.en');
+const exe = arg('--exe', '');
 const profile = resolve('.local/smoke-profile');
 const cache = resolve('.local/smoke-assets');
 const wav = resolve('benchmark/fixtures/generated/plain.wav');
@@ -58,8 +60,9 @@ function defaults() {
 const checks = [];
 const ok = message => (checks.push(message), console.log(`  ✓ ${message}`));
 const app = await electron.launch({
+  ...(exe ? { executablePath: resolve(exe) } : {}),
   args: [
-    '.',
+    ...(exe ? [] : ['.']),
     '--use-fake-ui-for-media-stream',
     '--use-fake-device-for-media-stream',
     `--use-file-for-fake-audio-capture=${wav}%noloop`,

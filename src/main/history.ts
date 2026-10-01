@@ -4,7 +4,7 @@ import { atomicJson } from './settings/store';
 
 const limit = 500;
 
-/** Recent transcripts, kept in one local JSON file. Turning history off deletes the file. */
+/** Recent transcripts, kept in one local JSON file. Turning history off stops new entries; clear() deletes the file. */
 export class History {
   private entries: HistoryEntry[] = [];
   private writing: Promise<void> = Promise.resolve();
