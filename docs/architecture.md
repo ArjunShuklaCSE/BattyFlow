@@ -15,10 +15,10 @@ flowchart LR
   llama["llama-cli.exe<br/>(optional)"]
   ui <--> main
   overlay <--> main
-  capture -- "16 kHz PCM frames" --> main
-  main <-- "JSON lines" --> helper
-  main -- "WAV file" --> whisper
-  main -- "prompt file" --> llama
+  capture -->|16 kHz PCM frames| main
+  main <-->|JSON lines| helper
+  main -->|WAV file| whisper
+  main -->|prompt file| llama
 ```
 
 ## A dictation, step by step
