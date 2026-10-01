@@ -2,7 +2,7 @@
   "name": "battyflow",
   "version": "0.2.0",
   "description": "Offline push-to-talk dictation for Windows. Hold a key, talk, and the text is typed where your cursor is. Runs whisper.cpp locally.",
-  "author": "BattyFlow contributors",
+  "author": "Arjun Shukla <arjunshuklacse@gmail.com>",
   "license": "MIT",
   "private": true,
   "type": "module",
@@ -34,7 +34,7 @@
   "build": {
     "appId": "org.battyflow.desktop",
     "productName": "BattyFlow",
-    "copyright": "Copyright © 2026 BattyFlow contributors",
+    "copyright": "Copyright © 2026 Arjun Shukla",
     "asar": true,
     "asarUnpack": [
       "dist/native/**/*"
