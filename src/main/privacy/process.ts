@@ -17,10 +17,11 @@ export function runProcess(
   if (!localPath(executable)) return Promise.reject(new Error('LOCAL_EXECUTABLE_REQUIRED'));
   if (options.signal.aborted) return Promise.reject(new Error('CANCELLED'));
   return new Promise((resolve, reject) => {
+    // A minimal environment: no proxies, no engine config from the user's shell. APPDATA is kept because the
+    // NVIDIA driver caches compiled GPU kernels there; without it every run recompiles for ~20 seconds.
     const env: NodeJS.ProcessEnv = {};
-    for (const key of ['SystemRoot', 'WINDIR', 'TEMP', 'TMP', 'HOME', 'USERPROFILE', 'LOCALAPPDATA'])
+    for (const key of ['SystemRoot', 'WINDIR', 'TEMP', 'TMP', 'HOME', 'USERPROFILE', 'LOCALAPPDATA', 'APPDATA'])
       if (process.env[key]) env[key] = process.env[key];
-    env['OMP_NUM_THREADS'] = '4';
     env['HF_HUB_OFFLINE'] = '1';
     env['HF_HUB_DISABLE_TELEMETRY'] = '1';
     env['NO_PROXY'] = '*';

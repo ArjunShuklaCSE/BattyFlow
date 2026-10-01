@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#a78bfa"/>
+      <stop offset="0.55" stop-color="#7c3aed"/>
+      <stop offset="1" stop-color="#4c1d95"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.22"/>
+      <stop offset="0.5" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#tile)"/>
+  <rect width="512" height="512" rx="116" fill="url(#shine)"/>
+  <g transform="translate(0 -20)">
+  <g fill="#fff">
+    <!-- bat: ears, head and body -->
+    <path d="M228 170 L222 120 L247 152 Q256 149 265 152 L290 120 L284 170 Q298 192 292 226 Q300 270 256 318 Q212 270 220 226 Q214 192 228 170 Z"/>
+    <!-- left wing; trailing edge scallops read as sound waves -->
+    <path d="M226 200 C186 168 118 140 50 150 Q80 196 96 266 Q122 236 154 250 Q176 222 206 246 Q222 236 238 264 Z"/>
+    <!-- right wing -->
+    <path d="M286 200 C326 168 394 140 462 150 Q432 196 416 266 Q390 236 358 250 Q336 222 306 246 Q290 236 274 264 Z"/>
+  </g>
+  <!-- echo arcs under the bat -->
+  <g fill="none" stroke="#fff" stroke-linecap="round" stroke-width="16">
+    <path d="M206 372 Q256 404 306 372" opacity="0.9"/>
+    <path d="M170 404 Q256 456 342 404" opacity="0.5"/>
+  </g>
+  </g>
+</svg>

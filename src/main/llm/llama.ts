@@ -6,16 +6,41 @@ import { runProcess } from '../privacy/process';
 import { verifyAsset } from '../settings/store';
 import { instructions } from './prompts';
 import { validateCleanup, validateDraft } from './validation';
-// Optional completion CLI. Only a validated local model is accepted; no URLs or HF flags.
+const required = [
+  '--no-display-prompt',
+  '--file',
+  '--predict',
+  '--ctx-size',
+  '--temp',
+  '--conversation',
+  '--single-turn',
+  '--system-prompt-file',
+  '--simple-io',
+];
+// Optional completion CLI (pinned to llama.cpp b6532, whose single-turn framing is tested). Only a verified
+// local model is accepted; no URLs or download flags are ever passed.
 export class Llama implements TextTransformer {
+  private ready: Promise<void> | null = null;
   constructor(
     readonly runtime: Asset,
     readonly model: Asset,
     readonly tempRoot: string,
     readonly threads: number,
   ) {}
+  prepare(): Promise<void> {
+    this.ready ??= (async () => {
+      await Promise.all([verifyAsset(this.runtime), verifyAsset(this.model, 'GGUF')]);
+      const help = await runProcess(this.runtime.path, ['--help'], {
+        signal: new AbortController().signal,
+        timeoutMs: 10000,
+        cwd: dirname(this.runtime.path),
+      });
+      if (required.some(flag => !(help.stdout + help.stderr).includes(flag))) throw new Error('LLAMA_CLI_INCOMPATIBLE');
+    })();
+    this.ready.catch(() => (this.ready = null));
+    return this.ready;
+  }
   async transform(data: TransformData, signal: AbortSignal): Promise<string> {
-    if (this.runtime.version !== 'b6532') throw new Error('LLAMA_VERSION_REQUIRES_B6532');
     const serialized = JSON.stringify(data);
     // UTF-8 byte bound is conservative for an 8192-token context, reserving output and instructions.
     if (Buffer.byteLength(serialized) > 4500) throw new Error('TRANSFORMATION_INPUT_TOO_LARGE');
@@ -23,20 +48,8 @@ export class Llama implements TextTransformer {
       throw new Error('TRANSFORMATION_SOURCE_LANGUAGE_UNSUPPORTED');
     if (data.mode === 'translation' && !this.model.languages.includes(data.targetLanguage ?? ''))
       throw new Error('TRANSLATION_LANGUAGE_UNSUPPORTED');
-    await Promise.all([verifyAsset(this.runtime), verifyAsset(this.model, 'GGUF')]);
-    const help = await runProcess(this.runtime.path, ['--help'], { signal, timeoutMs: 10000 });
-    for (const flag of [
-      '--no-display-prompt',
-      '--file',
-      '--predict',
-      '--ctx-size',
-      '--temp',
-      '--conversation',
-      '--single-turn',
-      '--system-prompt-file',
-      '--simple-io',
-    ])
-      if (!(help.stdout + help.stderr).includes(flag)) throw new Error('LLAMA_CLI_INCOMPATIBLE');
+    await this.prepare();
+    signal.throwIfAborted();
     const folder = join(this.tempRoot, `session-${randomUUID()}`);
     try {
       await mkdir(folder, { mode: 0o700 });

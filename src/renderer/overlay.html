@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>BattyFlow overlay</title>
+    <link rel="stylesheet" href="overlay.css" />
+  </head>
+  <body>
+    <div id="pill" class="pill" data-state="idle" role="status" aria-live="polite">
+      <span class="badge" aria-hidden="true"
+        ><span class="dot"></span><i data-icon="check"></i><i data-icon="clipboard"></i><i data-icon="alert"></i
+      ></span>
+      <div class="wave" id="wave" aria-hidden="true"></div>
+      <span class="label" id="label"></span>
+      <span class="time" id="time"></span>
+      <button class="btn" id="stop" title="Finish (or let go of the keys)"><i data-icon="stop"></i></button>
+      <button class="btn" id="cancel" title="Discard"><i data-icon="x"></i></button>
+    </div>
+    <script src="overlay.js"></script>
+  </body>
+</html>

@@ -1,7 +1,7 @@
 {
   "name": "battyflow",
-  "version": "0.1.0",
-  "description": "Private local desktop dictation for developers",
+  "version": "0.2.0",
+  "description": "Offline push-to-talk dictation for Windows. Hold a key, talk, and the text is typed where your cursor is. Runs whisper.cpp locally.",
   "author": "BattyFlow contributors",
   "license": "MIT",
   "private": true,
@@ -9,14 +9,15 @@
   "main": "dist/main/app.cjs",
   "scripts": {
     "build": "node scripts/build.mjs",
+    "start": "npm run build && electron .",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "check": "npm run typecheck && npm test && npm run build",
-    "start": "npm run build && electron .",
-    "test:desktop": "node scripts/desktop-smoke.mjs",
-    "package": "npm run build && electron-builder --win portable --x64",
+    "smoke": "node scripts/smoke.mjs",
+    "fixtures": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/synthetic-fixtures.ps1 && node scripts/finalize-fixtures.mjs",
     "benchmark": "tsx benchmark/run.ts",
-    "fixtures:synthetic": "powershell.exe -NoProfile -File scripts/synthetic-fixtures.ps1",
+    "icons": "node scripts/render-icons.mjs",
+    "package": "npm run build && electron-builder --win nsis portable --x64 --publish never",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
@@ -33,6 +34,7 @@
   "build": {
     "appId": "org.battyflow.desktop",
     "productName": "BattyFlow",
+    "copyright": "Copyright © 2026 BattyFlow contributors",
     "asar": true,
     "asarUnpack": [
       "dist/native/**/*"
@@ -40,18 +42,30 @@
     "files": [
       "dist/**/*",
       "package.json",
-      "LICENSE",
-      "docs/**/*"
+      "LICENSE"
     ],
     "directories": {
       "output": "release"
     },
     "win": {
       "target": [
+        "nsis",
         "portable"
       ],
       "icon": "assets/icon.ico",
       "signExecutable": false
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "artifactName": "BattyFlow-Setup-${version}.${ext}",
+      "shortcutName": "BattyFlow",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true
+    },
+    "portable": {
+      "artifactName": "BattyFlow-${version}-portable.${ext}"
     },
     "mac": {
       "target": [
@@ -59,7 +73,7 @@
       ],
       "category": "public.app-category.productivity",
       "extendInfo": {
-        "NSMicrophoneUsageDescription": "Record speech for transcription on this computer."
+        "NSMicrophoneUsageDescription": "BattyFlow records speech to transcribe it on this computer."
       }
     },
     "linux": {
@@ -68,5 +82,10 @@
       ],
       "category": "Utility"
     }
+  },
+  "homepage": "https://github.com/ArjunShuklaCSE/BattyFlow",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ArjunShuklaCSE/BattyFlow.git"
   }
 }

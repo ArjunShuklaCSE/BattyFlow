@@ -22,12 +22,11 @@ await build({
   format: 'cjs',
 });
 await build({
-  entryPoints: ['src/renderer/ui.ts', 'src/renderer/capture.ts', 'src/renderer/worklet.ts'],
+  entryPoints: ['src/renderer/ui.ts', 'src/renderer/overlay.ts', 'src/renderer/capture.ts', 'src/renderer/worklet.ts'],
   outdir: 'dist/renderer',
   bundle: true,
   platform: 'browser',
   target: 'chrome130',
 });
-await cp('src/renderer/index.html', 'dist/renderer/index.html');
-await cp('src/renderer/capture.html', 'dist/renderer/capture.html');
-await cp('src/renderer/style.css', 'dist/renderer/style.css');
+for (const file of ['index.html', 'overlay.html', 'capture.html', 'style.css', 'overlay.css'])
+  await cp(`src/renderer/${file}`, `dist/renderer/${file}`);

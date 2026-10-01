@@ -5,241 +5,233 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
     />
     <title>BattyFlow</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div id="shell">
-      <aside>
+    <div id="app">
+      <header class="titlebar">
         <div class="brand">
-          <span class="brand-icon">b.</span><span>battyflow<span class="brand-caption">LOCAL DICTATION</span></span>
+          <img src="logo.svg" alt="" width="22" height="22" />
+          <span>BattyFlow</span>
         </div>
-        <nav aria-label="Main">
-          <button class="nav active" data-page="studio">◉ <span>Dictation</span></button
-          ><button class="nav" data-page="models">▣ <span>Local models</span></button
-          ><button class="nav" data-page="vocabulary">≡ <span>Vocabulary</span></button
-          ><button class="nav" data-page="preferences">⚙ <span>Preferences</span></button
-          ><button class="nav" data-page="privacy">◇ <span>Privacy & capabilities</span></button>
+        <div class="engine" id="engine" title="Speech engine status">
+          <span class="dot"></span>
+          <span id="engine-title">Not set up</span>
+          <span class="sep">·</span>
+          <span id="engine-detail" class="muted">Download a model to start</span>
+        </div>
+      </header>
+
+      <aside class="sidebar">
+        <nav aria-label="Pages">
+          <button class="nav active" data-page="home"><i data-icon="mic"></i><span>Home</span></button>
+          <button class="nav" data-page="history"><i data-icon="history"></i><span>History</span></button>
+          <button class="nav" data-page="vocabulary"><i data-icon="braces"></i><span>Vocabulary</span></button>
+          <button class="nav" data-page="models"><i data-icon="chip"></i><span>Models</span></button>
+          <button class="nav" data-page="settings"><i data-icon="sliders"></i><span>Settings</span></button>
         </nav>
-        <div class="sidebar-bottom">
-          <span class="status-dot"></span> Local processing only
-          <p>No account. No hosted fallback.<br />Audio is discarded after processing.</p>
-          <small>BattyFlow · 0.1.0 preview</small>
+        <div class="sidebar-foot">
+          <div class="local"><i data-icon="shield"></i><span>Runs offline. Nothing leaves this PC.</span></div>
+          <span id="version" class="faint"></span>
         </div>
       </aside>
+
       <main>
-        <header>
-          <div>
-            <p class="eyebrow">YOUR WORDS, ON YOUR COMPUTER</p>
-            <h1 id="page-title">Dictation studio</h1>
+        <!-- Home -->
+        <section id="home" class="page">
+          <div id="setup" class="card setup" hidden>
+            <div>
+              <span class="eyebrow">Welcome</span>
+              <h2>Let’s get the speech engine</h2>
+              <p class="muted">
+                BattyFlow transcribes on this computer with whisper.cpp. Pick a setup: it downloads from the official
+                releases and checks every file against its published SHA-256 before using it.
+              </p>
+            </div>
+            <div class="setup-options" id="setup-options"></div>
+            <div class="setup-actions">
+              <button class="primary" id="setup-start"><i data-icon="download"></i>Download and set up</button>
+              <span class="muted" id="setup-size"></span>
+            </div>
+            <div id="setup-progress" class="setup-progress" hidden></div>
+            <p class="faint small">
+              No internet on this machine? Copy the files over and import them from
+              <a href="#" data-goto="models">Models</a>.
+            </p>
           </div>
-          <span class="badge">LOCAL ONLY</span>
-        </header>
-        <section id="studio" class="page">
-          <div id="setup-required" class="callout" hidden>
-            <h2>Set up speech recognition first</h2>
-            <p>Add a local Whisper runtime and speech model before recording. Your audio stays on this computer.</p>
-            <button id="setup-models">Open Local models</button>
+
+          <div class="hero" id="hero">
+            <div class="hero-copy">
+              <span id="status-chip" class="chip">Ready</span>
+              <h1 id="hero-title">Hold <kbd>Ctrl</kbd><kbd>Win</kbd> to talk</h1>
+              <p id="hero-sub">Let go, and your words appear wherever your cursor is.</p>
+              <p id="hero-alt" class="hero-alt"></p>
+            </div>
+            <div class="hero-action">
+              <button id="record" class="record" aria-label="Start recording">
+                <span class="ring r1"></span>
+                <span class="ring r2"></span>
+                <i data-icon="mic"></i>
+              </button>
+              <span id="elapsed" class="elapsed"></span>
+            </div>
           </div>
-          <div class="hero">
-            <div class="hero-heading">
-              <div>
-                <span class="eyebrow">CAPTURE</span>
-                <h2>Speak your next thought.</h2>
-                <p>Keep the identifiers. Keep the intent.</p>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head">
+                <h3>Last transcript</h3>
+                <div class="actions">
+                  <span id="result-meta" class="faint small"></span>
+                  <button id="copy" class="ghost small-btn" disabled><i data-icon="copy"></i>Copy</button>
+                </div>
               </div>
-              <span id="state" class="state">idle</span>
+              <p id="partial" class="partial" hidden></p>
+              <div id="result" class="result empty">Nothing yet. Hold the shortcut anywhere and say something.</div>
             </div>
-            <div class="wave" aria-hidden="true">
-              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i
-              ><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-            </div>
-            <div class="capture-footer">
-              <div>
-                <span id="elapsed">0:00</span><span class="muted" id="limit-label"> / 120s safety limit</span
-                ><progress id="meter" max="0.2" value="0" aria-label="Microphone level"></progress>
+            <div class="card">
+              <div class="card-head">
+                <h3>Scratch pad</h3>
+                <span class="faint small">Click inside, then dictate</span>
               </div>
-              <div class="actions">
-                <button id="cancel" class="quiet">Cancel</button
-                ><button id="record" class="primary">Start recording <kbd id="shortcut">Ctrl Alt D</kbd></button>
+              <textarea
+                id="scratch"
+                rows="5"
+                placeholder="Try it here first: click into this box and hold the shortcut, or press the microphone."
+                aria-label="Scratch pad"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="stats" id="stats">
+            <div><strong id="stat-today">0</strong><span>words today</span></div>
+            <div><strong id="stat-words">0</strong><span>words in total</span></div>
+            <div><strong id="stat-wpm">–</strong><span>words per minute</span></div>
+            <div><strong id="stat-sessions">0</strong><span>dictations</span></div>
+          </div>
+          <p id="notice" class="notice" role="status"></p>
+        </section>
+
+        <!-- History -->
+        <section id="history" class="page" hidden>
+          <header class="page-head">
+            <div>
+              <h1>History</h1>
+              <p class="muted">Recent transcripts. Stored only on this computer.</p>
+            </div>
+            <div class="actions">
+              <div class="search">
+                <i data-icon="search"></i
+                ><input id="history-search" type="search" placeholder="Search" aria-label="Search history" />
               </div>
+              <button id="history-clear" class="ghost danger">Clear all</button>
+            </div>
+          </header>
+          <div id="history-list" class="history-list"></div>
+        </section>
+
+        <!-- Vocabulary -->
+        <section id="vocabulary" class="page" hidden>
+          <header class="page-head">
+            <div>
+              <h1>Vocabulary</h1>
+              <p class="muted">Say it your way, get the exact spelling. These words also steer recognition.</p>
+            </div>
+            <div class="actions">
+              <button id="vocab-import" class="ghost">Import</button>
+              <button id="vocab-export" class="ghost">Export</button>
+              <button id="vocab-save" class="primary">Save changes</button>
+            </div>
+          </header>
+          <div class="card flush">
+            <table class="vocab">
+              <thead>
+                <tr>
+                  <th>Written as</th>
+                  <th>When you say</th>
+                  <th>Where</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="vocab-rows"></tbody>
+            </table>
+            <div class="table-foot">
+              <button id="vocab-add" class="ghost small-btn"><i data-icon="plus"></i>Add a word</button>
             </div>
           </div>
-          <div class="studio-row">
-            <label
-              >Mode<select id="mode">
-                <option value="dictation">Dictation</option>
-                <option value="command">Command draft · local model required</option>
-                <option value="translation">Translation · verified pair required</option>
-                <option value="edit" disabled>Edit selection · adapter unavailable</option>
-              </select></label
-            ><label
-              >Writing profile<select id="profile">
-                <option value="neutral">Neutral</option>
-                <option value="code">Code</option>
-                <option value="chat">Chat</option>
-                <option value="email">Email</option>
-                <option value="terminal">Terminal · copy only</option>
-              </select></label
-            >
-          </div>
-          <div class="result-card">
-            <div class="section-heading">
-              <h2>Review your words</h2>
-              <span id="result-kind" class="muted">One final result</span>
+          <p class="faint small">
+            Separate spoken forms with commas. “Where” limits a word to one kind of app; code words also apply in
+            terminals. If two words share a spoken form in the same place, BattyFlow leaves what you said untouched.
+          </p>
+        </section>
+
+        <!-- Models -->
+        <section id="models" class="page" hidden>
+          <header class="page-head">
+            <div>
+              <h1>Models</h1>
+              <p class="muted">
+                Everything runs locally. Downloads start only when you click, and each file is checked against its
+                published SHA-256.
+              </p>
             </div>
-            <p id="partial" class="partial" hidden></p>
-            <div id="result" class="result" aria-live="polite">Your transcript will appear here.</div>
-            <div class="result-footer">
-              <span class="muted">Choose the intended field before pasting.</span
-              ><button id="copy" disabled>Copy text</button>
+          </header>
+          <h2 class="section-title">Speech engine</h2>
+          <div class="model-grid" data-kind="whisper"></div>
+          <h2 class="section-title">Speech model</h2>
+          <div class="model-grid" data-kind="asrModel"></div>
+          <h2 class="section-title">Polish <span class="tag">optional</span></h2>
+          <p class="muted small section-note">
+            A small local language model that tidies punctuation and filler words, and powers the Command, Edit and
+            Translate modes. If it would change your meaning, numbers or identifiers, your words are kept as spoken.
+          </p>
+          <div class="model-grid" data-kind="llama"></div>
+          <div class="model-grid" data-kind="llmModel"></div>
+          <details class="card advanced">
+            <summary>Import your own files</summary>
+            <p class="muted small">
+              For machines without internet access, or models not listed here. Import a JSON manifest that points at the
+              file and lists its SHA-256, size, license and languages. See
+              <a href="#" data-link="models">the model guide</a>.
+            </p>
+            <div class="actions">
+              <button class="ghost" data-import="whisper">Engine manifest</button>
+              <button class="ghost" data-import="asrModel">Speech model manifest</button>
+              <button class="ghost" data-import="llama">llama.cpp manifest</button>
+              <button class="ghost" data-import="llmModel">Language model manifest</button>
             </div>
-          </div>
-          <details class="test-card" open>
-            <summary>Try it here first</summary>
-            <p class="muted">This field is owned by BattyFlow. External apps use explicit copy and manual paste.</p>
-            <textarea
-              id="test-field"
-              rows="3"
-              placeholder="A safe place to test your dictation…"
-              aria-label="In-app test field"
-            ></textarea
-            ><button id="insert-test" disabled>Insert result into test field</button>
           </details>
         </section>
-        <section id="models" class="page" hidden>
-          <p class="intro">
-            Bring your own local runtime and model files. Import their JSON manifests to verify size, SHA-256,
-            provenance, license, and language support. Downloads happen outside this application.
-          </p>
-          <div id="model-list"></div>
-          <div class="callout">
-            <h3>Start with Whisper</h3>
+
+        <!-- Settings -->
+        <section id="settings" class="page" hidden>
+          <header class="page-head">
+            <div>
+              <h1>Settings</h1>
+              <p class="muted">Changes save as you make them.</p>
+            </div>
+          </header>
+          <div class="settings" id="settings-form"></div>
+          <h2 class="group-title">Privacy</h2>
+          <div class="card about">
             <p>
-              Import <strong>whisper.cpp 1.8.3</strong> and a ggml model. English-only models support English only. Keep
-              native DLLs beside the executable. Manifests can reference files outside the application.
+              Audio and text never leave this computer. No account, no telemetry, no cloud fallback. The only network
+              requests are model downloads you start yourself, from GitHub and Hugging Face.
             </p>
-            <p>
-              Optional cleanup uses a local llama.cpp completion executable and GGUF model. Its integration remains
-              experimental until you validate your runtime/model pair. Raw dictation works without cleanup.
-            </p>
+            <dl id="capabilities" class="capabilities"></dl>
+            <div class="actions">
+              <button class="ghost" data-link="privacy">Privacy details</button>
+              <button class="ghost" data-link="repo">Source code</button>
+              <button class="ghost" data-link="issues">Report a problem</button>
+            </div>
           </div>
         </section>
-        <section id="vocabulary" class="page" hidden>
-          <p class="intro">
-            Exact spellings, explicit spoken aliases. Longer aliases win. Equally applicable conflicts remain spoken
-            words. App/project scopes are stored but inactive until context is supported.
-          </p>
-          <label for="dictionary">Versioned dictionary · JSON</label
-          ><textarea id="dictionary" rows="20" spellcheck="false"></textarea>
-          <div class="actions">
-            <button id="import-dictionary">Import JSON</button
-            ><button id="export-dictionary">Export saved dictionary</button
-            ><button id="save-dictionary" class="primary">Save vocabulary</button>
-          </div>
-        </section>
-        <section id="preferences" class="page" hidden>
-          <form id="settings-form">
-            <h2>Recording</h2>
-            <div class="form-grid">
-              <label
-                >Microphone<select id="microphone">
-                  <option value="">System default</option>
-                </select></label
-              ><button type="button" id="refresh-devices">Refresh microphones</button
-              ><label
-                >Speech language code<input
-                  id="language"
-                  value="en"
-                  maxlength="3"
-                  pattern="[a-z]{2,3}"
-                  required /></label
-              ><label
-                >Safety limit (10–180 seconds)<input
-                  id="max-seconds"
-                  type="number"
-                  min="10"
-                  max="180"
-                  required /></label
-              ><label>CPU threads (1–16)<input id="threads" type="number" min="1" max="16" required /></label>
-            </div>
-            <label class="check"
-              ><input id="silence-stop" type="checkbox" /> Stop after 1.5 seconds of silence (experimental energy
-              VAD)</label
-            ><label class="check"
-              ><input id="preview" type="checkbox" /> Incremental preview of the latest 12 seconds (extra CPU;
-              revisable)</label
-            >
-            <h2>Global shortcuts</h2>
-            <p class="muted">
-              Use two modifiers and one letter or number. Toggle controls; key-release push-to-talk is unavailable.
-            </p>
-            <div class="form-grid">
-              <label>Dictation toggle<input id="dictation-shortcut" required /></label
-              ><label>Command drafting<input id="command-shortcut" required /></label
-              ><label>Edit selection (capability message)<input id="edit-shortcut" required /></label>
-            </div>
-            <h2>Translation</h2>
-            <div class="form-grid">
-              <label
-                >Target language code<input id="target-language" maxlength="3" pattern="[a-z]{2,3}" required /></label
-              ><label>Verified local language pairs<input id="translation-pairs" placeholder="en:es,en:fr" /></label>
-            </div>
-            <p class="muted">
-              Only enable pairs you have checked against the imported model's capabilities. Translation is always
-              previewed.
-            </p>
-            <h2>Data handling</h2>
-            <p>
-              History and content diagnostics are off. Audio and results are temporary. Context collection and automatic
-              raw fallback are unavailable; external delivery requires review and explicit copy.
-            </p>
-            <button type="submit" class="primary">Save preferences</button>
-          </form>
-        </section>
-        <section id="privacy" class="page" hidden>
-          <div class="callout">
-            <h2>A clear local boundary</h2>
-            <p>
-              No accounts, remote assets, automatic downloads, updates, telemetry, or cloud fallback. This build makes
-              no inference HTTP requests, including loopback requests. Native inference runs as a local child process.
-            </p>
-            <p>
-              Renderer and Node request guards are defense in depth. They are not an OS firewall. Use the documented
-              process-level blocking and observation procedure to verify a particular native runtime.
-            </p>
-            <p>
-              Audio uses temporary WAV files in a restricted folder and is deleted after processing, cancellation, and
-              recoverable startup cleanup. Deletion is not secure erasure. Results live in memory. Explicitly copied
-              text remains on your clipboard; pasted text follows the receiving app's data handling.
-            </p>
-          </div>
-          <h2>Current adapter capabilities</h2>
-          <dl id="capabilities"></dl>
-          <p class="muted">
-            Windows UI Automation can inspect supported fields and explicit selections; other adapters cannot.
-            Capability failures require manual delivery. Automatic external insertion is disabled on every platform.
-          </p>
-        </section>
-        <footer id="notice" role="status"></footer>
-        <div id="error" role="alert" hidden></div>
       </main>
     </div>
-    <section id="overlay-shell" hidden>
-      <div class="overlay-top">
-        <strong>battyflow</strong><span id="overlay-state">idle</span><span id="overlay-time">0:00</span>
-      </div>
-      <progress id="overlay-meter" max="0.2" value="0" aria-label="Microphone level"></progress>
-      <p id="overlay-text">Ready when you are.</p>
-      <p id="overlay-notice" class="muted" role="status"></p>
-      <div class="actions">
-        <button id="overlay-stop">Stop</button><button id="overlay-cancel">Cancel</button
-        ><button id="overlay-copy" disabled>Copy</button><button id="overlay-settings">Open app</button
-        ><button id="overlay-dismiss">Dismiss</button>
-      </div>
-    </section>
+    <div id="toasts" aria-live="polite"></div>
     <script src="ui.js"></script>
   </body>
 </html>

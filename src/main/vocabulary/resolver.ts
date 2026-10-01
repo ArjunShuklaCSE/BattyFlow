@@ -9,10 +9,40 @@ export const starter: Dictionary = {
     { canonical: 'Kubernetes', spokenAliases: ['kubernetes'] },
     { canonical: 'git checkout', spokenAliases: ['git check out'], scope: { profile: 'code' } },
     { canonical: 'getUserById', spokenAliases: ['get user by id', 'get user by eye dee'], scope: { profile: 'code' } },
+    { canonical: 'GitHub', spokenAliases: ['git hub'] },
+    { canonical: 'TypeScript', spokenAliases: ['type script'] },
+    { canonical: 'JavaScript', spokenAliases: ['java script'] },
+    { canonical: 'PostgreSQL', spokenAliases: ['postgres q l', 'postgres sequel'] },
+    { canonical: 'Node.js', spokenAliases: ['node js', 'node dot js'] },
+    { canonical: 'kubectl', spokenAliases: ['cube control', 'kube control', 'cube cuddle'] },
+    { canonical: 'localhost', spokenAliases: ['local host'] },
   ],
 };
 const escape = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const word = (x: string | undefined) => x !== undefined && /[\p{L}\p{N}_]/u.test(x);
+// Code vocabulary also applies in terminals: shell commands are code too.
+const applies = (e: Dictionary['entries'][number], profile: Profile) =>
+  !e.scope?.app &&
+  !e.scope?.project &&
+  (!e.scope?.profile ||
+    e.scope.profile === 'any' ||
+    e.scope.profile === profile ||
+    (e.scope.profile === 'code' && profile === 'terminal'));
+
+/** Whisper's initial prompt nudges recognition toward these spellings. A natural sentence works better than a
+ * bare list, which makes small models format everything as code. Whisper keeps at most ~224 prompt tokens. */
+export function vocabularyPrompt(dictionary: Dictionary, profile: Profile): string {
+  const terms: string[] = [];
+  let length = 0;
+  for (const entry of dictionary.entries) {
+    if (!applies(entry, profile) || terms.includes(entry.canonical)) continue;
+    if ((length += entry.canonical.length + 2) > 500) break;
+    terms.push(entry.canonical);
+  }
+  if (!terms.length) return '';
+  const list = terms.length === 1 ? terms[0] : `${terms.slice(0, -1).join(', ')}, and ${terms.at(-1)}`;
+  return `In this conversation we talk about ${list}.`;
+}
 export function validateDictionary(value: unknown): Dictionary {
   if (!value || typeof value !== 'object') throw new Error('INVALID_DICTIONARY');
   const d = value as Dictionary;
@@ -67,12 +97,7 @@ export function resolve(
 ): { text: string; spans: Span[]; ambiguities: string[] } {
   const candidates: (Span & { exact: boolean; priority: number })[] = [];
   for (const e of dictionary.entries) {
-    if (
-      e.scope?.app ||
-      e.scope?.project ||
-      (e.scope?.profile && e.scope.profile !== 'any' && e.scope.profile !== profile)
-    )
-      continue;
+    if (!applies(e, profile)) continue;
     for (const [phrase, exact] of [[e.canonical, true], ...e.spokenAliases.map(a => [a, false])] as [
       string,
       boolean,
