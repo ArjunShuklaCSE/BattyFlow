@@ -27,7 +27,7 @@ BattyFlow now types for you. 0.1 transcribed into its own window and left you to
 
 - Settings migrate from 0.1 automatically.
 - Error messages say what to do instead of showing internal codes.
-- The verification logs and evidence dumps under `docs/` were replaced by [benchmarks](docs/benchmarks.md), [privacy](docs/privacy.md), [models](docs/models.md) and [architecture](docs/architecture.md) guides.
+- The verification logs and evidence dumps under `docs/` were replaced by [benchmarks](https://github.com/ArjunShuklaCSE/BattyFlow/blob/main/docs/benchmarks.md), [privacy](https://github.com/ArjunShuklaCSE/BattyFlow/blob/main/docs/privacy.md), [models](https://github.com/ArjunShuklaCSE/BattyFlow/blob/main/docs/models.md) and [architecture](https://github.com/ArjunShuklaCSE/BattyFlow/blob/main/docs/architecture.md) guides.
 
 ## 0.1.0-preview
 
